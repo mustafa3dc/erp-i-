@@ -591,7 +591,9 @@
                     setCart([]);
                     refresh();
                 } catch (err) {
-                    setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء إتمام عملية البيع.");
+                    const serverDetail = err.response?.data?.detail;
+                    const errorDetails = serverDetail ? (typeof serverDetail === 'object' ? JSON.stringify(serverDetail) : serverDetail) : '';
+                    setErrorMsg(errorDetails || err.message || "حدث خطأ أثناء إتمام عملية البيع.");
                 }
             };
 
