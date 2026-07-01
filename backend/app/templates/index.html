@@ -1497,11 +1497,33 @@
                                     />
                                 )}
                             </div>
+                            {activeCategory === 'Maintenance' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1.5">نوع قطعة الصيانة (اختيار سريع) *</label>
+                                    <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                        {["شاشة", "بطارية", "كفر خلفي", "منفذ شحن", "كاميرا خلفية", "كاميرا أمامية", "فلاتة شحن", "سماعة"].map(partType => (
+                                            <button
+                                                type="button"
+                                                key={partType}
+                                                onClick={() => setName(partType)}
+                                                class={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all border ${
+                                                    name === partType 
+                                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm' 
+                                                    : 'bg-slate-950 text-slate-450 border-slate-800 hover:text-slate-200'
+                                                }`}
+                                            >
+                                                {partType}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label class="block text-sm text-slate-400 mb-1">
                                     {activeCategory === 'Phone' && "اسم الجهاز والموديل"}
                                     {activeCategory === 'Accessory' && "اسم الإكسسوار"}
-                                    {activeCategory === 'Maintenance' && "اسم القطعة (شاشة، بطارية..)"}
+                                    {activeCategory === 'Maintenance' && "اسم القطعة المحددة"}
                                 </label>
                                 <input 
                                     type="text" 
@@ -1511,7 +1533,7 @@
                                     list="inventory-device-models"
                                     placeholder={
                                         activeCategory === 'Phone' ? "مثال: iPhone 15 Pro Max" :
-                                        activeCategory === 'Accessory' ? "مثال: شاحن سريع 20W" : "مثال: شاشة iPhone 11 الأصلية"
+                                        activeCategory === 'Accessory' ? "مثال: شاحن سريع 20W" : "مثال: شاشة"
                                     }
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
                                 />
@@ -2065,11 +2087,12 @@
                 }
             };
 
-            const typedModel = deviceModel.trim().toLowerCase();
-            const matchingParts = typedModel.length >= 2 ? products.filter(p => {
+            const cleanQueryModel = deviceModel.trim().toLowerCase();
+            const matchingParts = cleanQueryModel.length >= 2 ? products.filter(p => {
                 if (p.type !== 'Maintenance') return false;
                 const availableItems = p.items.filter(i => i.status === 'Available');
-                return p.name.toLowerCase().includes(typedModel) && availableItems.length > 0;
+                const modelOnly = cleanQueryModel.includes(' - ') ? cleanQueryModel.split(' - ')[1].trim() : cleanQueryModel;
+                return (p.name.toLowerCase().includes(cleanQueryModel) || p.name.toLowerCase().includes(modelOnly)) && availableItems.length > 0;
             }) : [];
 
             return (
@@ -2281,9 +2304,10 @@
                                                 {job.imei && <span class="text-[10px] text-slate-500 font-mono block mt-0.5">IMEI: {job.imei}</span>}
                                                 {(() => {
                                                     const cleanJobModel = job.device_model.trim().toLowerCase();
+                                                    const modelOnly = cleanJobModel.includes(' - ') ? cleanJobModel.split(' - ')[1].trim() : cleanJobModel;
                                                     const partsInStock = cleanJobModel.length >= 2 ? products.filter(p => 
                                                         p.type === 'Maintenance' && 
-                                                        p.name.toLowerCase().includes(cleanJobModel) && 
+                                                        (p.name.toLowerCase().includes(cleanJobModel) || p.name.toLowerCase().includes(modelOnly)) && 
                                                         p.items.some(i => i.status === 'Available')
                                                     ) : [];
                                                     
