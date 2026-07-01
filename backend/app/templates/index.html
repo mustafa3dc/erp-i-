@@ -356,64 +356,113 @@
             const totals = calculateTotals();
             const totalStockItems = products.reduce((acc, p) => acc + p.items.filter(i => i.status === 'Available').length, 0);
             const netProfit = totals.revenue - totals.expenses;
+            
+            const s = getShopSettings();
+            const currency = s.currency || 'د.ع';
 
             return (
                 <div class="space-y-6">
+                    {/* Top Row Cards */}
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-                            <span class="text-slate-400 text-sm">المبيعات الإجمالية</span>
-                            <div class="text-2xl font-bold text-emerald-400 mt-2 truncate">{totals.revenue.toFixed(2)} د.إ</div>
+                        <div class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl shadow-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 text-xs font-bold block mb-1">المبيعات الإجمالية</span>
+                                <div class="text-2xl font-extrabold text-emerald-400 truncate font-mono">
+                                    {totals.revenue.toLocaleString()} <span class="text-xs text-slate-500 font-bold">{currency}</span>
+                                </div>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                                <Icon name="trending-up" className="w-5 h-5 text-emerald-400" />
+                            </div>
                         </div>
-                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-                            <span class="text-slate-400 text-sm">الكاش في الصندوق</span>
-                            <div class="text-2xl font-bold text-sky-400 mt-2 truncate">{totals.cashInBox.toFixed(2)} د.إ</div>
+
+                        <div class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl shadow-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 text-xs font-bold block mb-1">الكاش في الصندوق</span>
+                                <div class="text-2xl font-extrabold text-sky-400 truncate font-mono">
+                                    {totals.cashInBox.toLocaleString()} <span class="text-xs text-slate-500 font-bold">{currency}</span>
+                                </div>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-sky-500/10 flex items-center justify-center">
+                                <Icon name="wallet" className="w-5 h-5 text-sky-400" />
+                            </div>
                         </div>
-                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-                            <span class="text-slate-400 text-sm">ديون العملاء (Credit)</span>
-                            <div class="text-2xl font-bold text-rose-400 mt-2 truncate">{totals.receivables.toFixed(2)} د.إ</div>
+
+                        <div class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl shadow-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 text-xs font-bold block mb-1">ديون العملاء (Credit)</span>
+                                <div class="text-2xl font-extrabold text-rose-400 truncate font-mono">
+                                    {totals.receivables.toLocaleString()} <span class="text-xs text-slate-500 font-bold">{currency}</span>
+                                </div>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-rose-500/10 flex items-center justify-center">
+                                <Icon name="users" className="w-5 h-5 text-rose-400" />
+                            </div>
                         </div>
-                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-                            <span class="text-slate-400 text-sm">صافي الأرباح المقدرة</span>
-                            <div class={`text-2xl font-bold mt-2 truncate ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                {netProfit.toFixed(2)} د.إ
+
+                        <div class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl shadow-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-400 text-xs font-bold block mb-1">صافي الأرباح المقدرة</span>
+                                <div class={`text-2xl font-extrabold truncate font-mono ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {netProfit.toLocaleString()} <span class="text-xs text-slate-500 font-bold">{currency}</span>
+                                </div>
+                            </div>
+                            <div class={`w-11 h-11 rounded-2xl flex items-center justify-center ${netProfit >= 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                                <Icon name="pie-chart" className={`w-5 h-5 ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
                             </div>
                         </div>
                     </div>
 
+                    {/* Secondary Row Details */}
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                            <h3 class="font-bold text-lg mb-4 text-emerald-400">حالة المخزن المتوفر</h3>
+                        {/* Warehouse Status */}
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg">
+                            <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
+                                <Icon name="package" className="w-4 h-4 text-emerald-400" />
+                                حالة المخزن المتوفر
+                            </h3>
                             <div class="space-y-4">
-                                <div class="flex justify-between border-b border-slate-800 pb-2">
-                                    <span>إجمالي أجهزة الموبايل الجاهزة للبيع</span>
-                                    <span class="font-bold text-emerald-400">{totalStockItems} جهاز</span>
+                                <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+                                    <span class="text-slate-300 text-sm">إجمالي الأجهزة الجاهزة للبيع</span>
+                                    <span class="font-bold text-sm text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/10">{totalStockItems} جهاز</span>
                                 </div>
-                                <div class="flex justify-between border-b border-slate-800 pb-2">
-                                    <span>إجمالي قيمة المخزن (التكلفة)</span>
-                                    <span class="font-bold text-sky-400">
-                                        {products.reduce((acc, p) => acc + (parseFloat(p.purchase_price) * p.items.filter(i => i.status === 'Available').length), 0).toFixed(2)} د.إ
+                                <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+                                    <span class="text-slate-300 text-sm">إجمالي قيمة المخزن (التكلفة)</span>
+                                    <span class="font-extrabold text-sm text-sky-400 font-mono">
+                                        {products.reduce((acc, p) => acc + (parseFloat(p.purchase_price) * p.items.filter(i => i.status === 'Available').length), 0).toLocaleString()} <span class="text-xs font-bold text-slate-500">{currency}</span>
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                            <h3 class="font-bold text-lg mb-4 text-emerald-400">آخر فواتير المبيعات</h3>
-                            <div class="space-y-3 overflow-y-auto max-h-[300px]">
+                        {/* Recent Bills */}
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg">
+                            <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
+                                <Icon name="receipt" className="w-4 h-4 text-emerald-400" />
+                                آخر فواتير المبيعات
+                            </h3>
+                            <div class="space-y-3 overflow-y-auto max-h-[300px] pr-1">
                                 {sales.slice(-5).reverse().map(sale => (
-                                    <div key={sale.id} class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
+                                    <div key={sale.id} class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-850 rounded-2xl flex justify-between items-center transition-all">
                                         <div>
                                             <div class="font-bold text-sm text-slate-200">فاتورة بيع لـ: {sale.customer_name || 'زبون نقدي'}</div>
-                                            <div class="text-xs text-slate-400 mt-1">تاريخ العملية: {new Date(sale.sale_date).toLocaleDateString('ar-EG')}</div>
+                                            <div class="text-[11px] text-slate-500 mt-1 font-mono">{new Date(sale.sale_date).toLocaleDateString('ar-EG')}</div>
                                         </div>
-                                        <div class="text-left">
-                                            <span class="px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-semibold">{sale.payment_method === 'Cash' ? 'نقداً' : 'آجل'}</span>
-                                            <div class="text-xs font-bold text-slate-300 mt-1">{parseFloat(sale.total_amount).toFixed(2)} د.إ</div>
+                                        <div class="text-left flex flex-col items-end gap-1.5">
+                                            <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                sale.payment_method === 'Cash' 
+                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
+                                                : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
+                                            }`}>{sale.payment_method === 'Cash' ? 'نقداً' : 'آجل'}</span>
+                                            <div class="text-xs font-bold text-emerald-400 font-mono">{parseFloat(sale.total_amount).toLocaleString()} {currency}</div>
                                         </div>
                                     </div>
                                 ))}
                                 {sales.length === 0 && (
-                                    <div class="text-center text-slate-500 py-8">لم يتم إجراء أي عملية بيع بعد.</div>
+                                    <div class="text-center text-slate-500 py-12 flex flex-col items-center justify-center gap-2">
+                                        <Icon name="inbox" className="w-8 h-8 text-slate-700" />
+                                        <span class="text-sm">لم يتم إجراء أي عملية بيع بعد.</span>
+                                    </div>
                                 )}
                             </div>
                         </div>

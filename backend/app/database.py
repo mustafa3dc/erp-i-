@@ -6,6 +6,10 @@ from sqlalchemy.orm import sessionmaker
 # Default to SQLite for easy local setup without Docker, but allow PostgreSQL via environment variable
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./accounting.db")
 
+# SQLAlchemy requires postgresql:// instead of postgres://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 connect_args = {}
 # SQLite needs check_same_thread=False for multithreading in FastAPI
 if DATABASE_URL.startswith("sqlite"):
