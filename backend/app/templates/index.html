@@ -1003,20 +1003,43 @@
 
 
             const addToCart = (product) => {
+                const availableItems = (product.items || []).filter(i => i.status === 'Available');
+                const inCartCount = cart.filter(item => item.product_id === product.id).length;
+
+                if (product.type === 'Maintenance') {
+                    setCart([...cart, {
+                        product_id: product.id,
+                        name: product.name,
+                        brand: product.brand,
+                        type: product.type,
+                        inventory_item_id: null,
+                        imei: '',
+                        battery_health: null,
+                        price: product.selling_price
+                    }]);
+                    return;
+                }
+
+                if (inCartCount >= availableItems.length) {
+                    alert(`لا يمكن إضافة المزيد! الكمية المتوفرة في المخزن لـ (${product.brand} - ${product.name}) هي ${availableItems.length} فقط.`);
+                    return;
+                }
+
                 let selectedItemId = null;
                 let selectedImei = '';
                 let selectedBattery = null;
-                if (product.type === 'Phone') {
-                    const available = product.items.find(i => i.status === 'Available');
-                    if (!available) return;
-                    selectedItemId = available.id;
-                    selectedImei = available.imei;
-                    selectedBattery = available.battery_health;
-                }
 
-                if (product.type === 'Phone' && cart.some(item => item.inventory_item_id === selectedItemId)) {
-                    alert("هذا الهاتف (IMEI) مضاف بالفعل في الفاتورة!");
-                    return;
+                if (product.type === 'Phone') {
+                    const cartItemIds = cart.map(item => item.inventory_item_id);
+                    const nextAvailable = availableItems.find(i => !cartItemIds.includes(i.id));
+                    
+                    if (!nextAvailable) {
+                        alert("عذراً، كل الأجهزة المتوفرة من هذا الموديل مضافة بالفعل في الفاتورة!");
+                        return;
+                    }
+                    selectedItemId = nextAvailable.id;
+                    selectedImei = nextAvailable.imei;
+                    selectedBattery = nextAvailable.battery_health;
                 }
 
                 setCart([...cart, {
