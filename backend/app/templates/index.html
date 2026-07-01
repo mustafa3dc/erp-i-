@@ -2152,6 +2152,40 @@
                         </div>
                     </div>
 
+                    {/* Database Reset (Danger Zone) */}
+                    <div class="p-6 bg-rose-50 border border-rose-200 rounded-2xl shadow-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                                <Icon name="trash-2" className="w-5 h-5 text-rose-600" />
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-rose-700">تصفير قاعدة البيانات (منطقة خطر)</h3>
+                                <p class="text-xs text-rose-500 font-bold">هذا الإجراء سيقوم بمسح كافة المبيعات، البضائع، القيود المحاسبية، وأجهزة الصيانة نهائياً ولا يمكن التراجع عنه!</p>
+                            </div>
+                        </div>
+                        <button 
+                            type="button"
+                            onClick={async () => {
+                                const confirmReset = confirm("⚠️ تحذير: هل أنت متأكد من تصفير قاعدة البيانات ومسح كل شيء؟ لا يمكن استعادة البيانات المحذوفة!");
+                                if (confirmReset) {
+                                    try {
+                                        const res = await axios.post('/reset-db/');
+                                        if (res.data.status === 'success') {
+                                            alert("تم تصفير قاعدة البيانات بالكامل بنجاح! سيتم تحديث الصفحة.");
+                                            window.location.reload();
+                                        }
+                                    } catch (e) {
+                                        alert("حدث خطأ أثناء محاولة تصفير قاعدة البيانات.");
+                                    }
+                                }
+                            }}
+                            class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-rose-600/10 flex items-center gap-2"
+                        >
+                            <Icon name="alert-triangle" className="w-4 h-4" />
+                            تصفير كل شيء وبدء عمل حقيقي
+                        </button>
+                    </div>
+
                 </div>
             );
         }

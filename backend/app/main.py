@@ -184,3 +184,22 @@ def update_maintenance_job(job_id: str, request: UpdateMaintenanceJobRequest, db
     return db_job
 
 
+@app.post("/reset-db/")
+def reset_database(db: Session = Depends(get_db)):
+    try:
+        # Delete items in dependent order
+        db.query(models.SaleItem).delete()
+        db.query(models.Sale).delete()
+        db.query(models.InventoryItem).delete()
+        db.query(models.Product).delete()
+        db.query(models.JournalItem).delete()
+        db.query(models.JournalEntry).delete()
+        db.query(models.MaintenanceJob).delete()
+        db.query(models.Account).delete()
+        db.commit()
+        return {"status": "success", "message": "Database reset successfully."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
