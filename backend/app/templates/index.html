@@ -2077,7 +2077,7 @@
                                             <td class="py-4 px-4 text-xs max-w-[200px] truncate" title={job.problem_description}>{job.problem_description || '-'}</td>
                                             <td class="py-4 px-4 text-left font-mono font-bold text-emerald-400">{parseFloat(job.cost).toLocaleString()} د.ع</td>
                                             <td class="py-4 px-4 text-center">
-                                                <span class={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(job.status)}`}>
+                                                <span class={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap inline-block ${getStatusColor(job.status)}`}>
                                                     {getStatusText(job.status)}
                                                 </span>
                                             </td>
@@ -2085,11 +2085,11 @@
                                                 {job.status !== 'Delivered' ? (
                                                     <button 
                                                         onClick={() => handleUpdateStatus(job.id, job.status, job.cost)}
-                                                        class={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all ${
+                                                        class={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all whitespace-nowrap ${
                                                             job.status === 'Under Inspection' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'
                                                         }`}
                                                     >
-                                                        {job.status === 'Under Inspection' ? 'جاهز للتسليم' : 'تسليم للزبون ولقبض'}
+                                                        {job.status === 'Under Inspection' ? 'جاهز للتسليم' : 'تسليم للزبون وقبض'}
                                                     </button>
                                                 ) : (
                                                     <button 
