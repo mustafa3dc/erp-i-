@@ -211,6 +211,27 @@
             const [maintenanceJobs, setMaintenanceJobs] = useState([]);
             const [loading, setLoading] = useState(false);
 
+            const [isLocked, setIsLocked] = useState(() => {
+                return sessionStorage.getItem('isUnlocked') !== 'true';
+            });
+            const [passwordInput, setPasswordInput] = useState('');
+            const [loginError, setLoginError] = useState('');
+
+            const handleUnlock = (e) => {
+                if (e) e.preventDefault();
+                const storedSettings = JSON.parse(localStorage.getItem('shopSettings') || '{}');
+                const correctPassword = storedSettings.systemPassword || '123456';
+                
+                if (passwordInput === correctPassword) {
+                    sessionStorage.setItem('isUnlocked', 'true');
+                    setIsLocked(false);
+                    setLoginError('');
+                    setPasswordInput('');
+                } else {
+                    setLoginError('الرمز السري غير صحيح!');
+                }
+            };
+
             // Fetch data
             const fetchData = async () => {
                 setLoading(true);
@@ -235,6 +256,48 @@
             useEffect(() => {
                 fetchData();
             }, []);
+
+            if (isLocked) {
+                const s = getShopSettings();
+                const shopName = s.shopName || 'متجر الموبايل';
+                return (
+                    <div class="flex items-center justify-center h-screen bg-slate-950">
+                        <div class="w-full max-w-md p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-center space-y-6">
+                            <div class="flex flex-col items-center justify-center gap-3">
+                                <div class="w-16 h-16 rounded-3xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/30">
+                                    <Icon name="lock" className="w-8 h-8 text-white animate-pulse" />
+                                </div>
+                                <h1 class="text-2xl font-extrabold text-slate-100">{shopName}</h1>
+                                <p class="text-xs text-slate-400 font-bold">يرجى إدخال رمز قفل النظام للمتابعة</p>
+                            </div>
+                            
+                            <form onSubmit={handleUnlock} class="space-y-4">
+                                {loginError && (
+                                    <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold rounded-xl">
+                                        {loginError}
+                                    </div>
+                                )}
+                                <div>
+                                    <input 
+                                        type="password" 
+                                        value={passwordInput} 
+                                        onChange={e => setPasswordInput(toEnglishDigits(e.target.value).replace(/[^0-9a-zA-Z]/g, ''))}
+                                        placeholder="أدخل رمز الدخول (الافتراضي: 123456)" 
+                                        class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-4 py-3 text-center font-mono text-lg tracking-widest text-slate-100 focus:outline-none transition-all"
+                                        autoFocus
+                                    />
+                                </div>
+                                <button 
+                                    type="submit" 
+                                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-600/20 text-sm"
+                                >
+                                    فتح النظام
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div class="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
@@ -312,12 +375,24 @@
                                 {currentTab === 'advanced' && 'إعدادات الحسابات المتقدمة'}
                                 {currentTab === 'settings' && 'إعدادات المتجر والفاتورة'}
                             </h1>
-                            <button 
-                                onClick={fetchData}
-                                class="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-all"
-                            >
-                                <Icon name="refresh-cw" className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button 
+                                    onClick={() => {
+                                        sessionStorage.removeItem('isUnlocked');
+                                        setIsLocked(true);
+                                    }}
+                                    class="p-2 text-slate-450 hover:text-rose-500 hover:bg-slate-850 rounded-lg transition-all"
+                                    title="قفل الشاشة"
+                                >
+                                    <Icon name="lock" className="w-5 h-5" />
+                                </button>
+                                <button 
+                                    onClick={fetchData}
+                                    class="p-2 text-slate-450 hover:text-emerald-400 hover:bg-slate-850 rounded-lg transition-all"
+                                >
+                                    <Icon name="refresh-cw" className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
                         </header>
 
                         {/* Page Body */}
@@ -2064,7 +2139,8 @@
                 phone: '',
                 email: '',
                 address: '',
-                footerNote: 'شكراً لتعاملكم معنا 🙏'
+                footerNote: 'شكراً لتعاملكم معنا 🙏',
+                systemPassword: '123456'
             };
 
             const [settings, setSettings] = useState(() => {
@@ -2111,6 +2187,7 @@
                             </div>
                             <SettingsField label="العنوان / الموقع" id="address" value={settings.address} onChange={v => handleChange('address', v)} placeholder="بغداد - الكرادة - ..." />
                             <SettingsField label="نص ختام الفاتورة" id="footerNote" value={settings.footerNote} onChange={v => handleChange('footerNote', v)} placeholder="شكراً لتعاملكم معنا 🙏" />
+                            <SettingsField label="رمز قفل النظام السري (Password)" id="systemPassword" value={settings.systemPassword} onChange={v => handleChange('systemPassword', v)} placeholder="123456" />
 
                             <div class="pt-2 flex items-center gap-4">
                                 <button
