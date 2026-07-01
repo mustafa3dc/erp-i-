@@ -2054,75 +2054,87 @@
                             <table class="w-full text-right text-sm">
                                 <thead>
                                     <tr class="border-b border-slate-800 text-slate-400 text-xs">
-                                        <th class="py-3 px-4">تاريخ الاستلام</th>
-                                        <th class="py-3 px-4">اسم الزبون</th>
-                                        <th class="py-3 px-4">رقم الهاتف</th>
+                                        <th class="py-3 px-4">الزبون والتاريخ</th>
                                         <th class="py-3 px-4">الجهاز</th>
                                         <th class="py-3 px-4">المشكلة / العطل</th>
                                         <th class="py-3 px-4 text-left">التكلفة</th>
-                                        <th class="py-3 px-4 text-center">الحالة</th>
-                                        <th class="py-3 px-4 text-center">خيارات</th>
+                                        <th class="py-3 px-4 text-center">الحالة والإجراء</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredJobs.map(job => (
                                         <tr key={job.id} class="border-b border-slate-850 hover:bg-slate-950/20 text-slate-200">
-                                            <td class="py-4 px-4 text-xs font-mono text-slate-500">{new Date(job.created_at).toLocaleDateString('ar-EG')}</td>
-                                            <td class="py-4 px-4 font-bold">{job.customer_name}</td>
-                                            <td class="py-4 px-4 font-mono text-xs">{job.customer_phone || '-'}</td>
-                                            <td class="py-4 px-4">
-                                                <div>{job.device_model}</div>
-                                                {job.imei && <span class="text-[10px] text-slate-500 font-mono block">IMEI: {job.imei}</span>}
+                                            {/* Customer & Date */}
+                                            <td class="py-3 px-4">
+                                                <div class="font-bold text-slate-100">{job.customer_name}</div>
+                                                <div class="text-[11px] text-slate-500 font-mono mt-0.5">{job.customer_phone || '-'}</div>
+                                                <div class="text-[10px] text-slate-500 mt-1">{new Date(job.created_at).toLocaleDateString('ar-EG')}</div>
                                             </td>
-                                            <td class="py-4 px-4 text-xs max-w-[200px] truncate" title={job.problem_description}>{job.problem_description || '-'}</td>
-                                            <td class="py-4 px-4 text-left font-mono font-bold text-emerald-400">{parseFloat(job.cost).toLocaleString()} د.ع</td>
-                                            <td class="py-4 px-4 text-center">
-                                                <span class={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap inline-block ${getStatusColor(job.status)}`}>
-                                                    {getStatusText(job.status)}
-                                                </span>
+
+                                            {/* Device */}
+                                            <td class="py-3 px-4">
+                                                <div class="font-bold text-slate-200">{job.device_model}</div>
+                                                {job.imei && <span class="text-[10px] text-slate-500 font-mono block mt-0.5">IMEI: {job.imei}</span>}
                                             </td>
-                                            <td class="py-4 px-4 text-center">
-                                                {job.status !== 'Delivered' ? (
-                                                    <button 
-                                                        onClick={() => handleUpdateStatus(job.id, job.status, job.cost)}
-                                                        class={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all whitespace-nowrap ${
-                                                            job.status === 'Under Inspection' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'
-                                                        }`}
-                                                    >
-                                                        {job.status === 'Under Inspection' ? 'جاهز للتسليم' : 'تسليم للزبون وقبض'}
-                                                    </button>
-                                                ) : (
-                                                    <button 
-                                                        onClick={() => {
-                                                            setReceipt({
-                                                                id: job.id,
-                                                                type: 'maintenance',
-                                                                date: new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                                                                customer: job.customer_name,
-                                                                customerPhone: job.customer_phone,
-                                                                paymentMethod: 'Cash',
-                                                                items: [{
-                                                                    brand: 'صيانة جهاز',
-                                                                    name: job.device_model,
-                                                                    imei: job.imei,
-                                                                    price: job.cost
-                                                                }],
-                                                                total: job.cost,
-                                                                maintenanceNote: job.problem_description,
-                                                                warrantyDays: job.warranty_days
-                                                            });
-                                                        }}
-                                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold rounded-lg text-xs flex items-center gap-1.5 mx-auto"
-                                                    >
-                                                        <Icon name="printer" className="w-3.5 h-3.5" /> طباعة الوصل
-                                                    </button>
-                                                )}
+
+                                            {/* Problem Description */}
+                                            <td class="py-3 px-4 text-xs text-slate-450 max-w-[220px] truncate" title={job.problem_description}>
+                                                {job.problem_description || '-'}
+                                            </td>
+
+                                            {/* Cost */}
+                                            <td class="py-3 px-4 text-left font-mono font-bold text-emerald-400">
+                                                {parseFloat(job.cost).toLocaleString()} د.ع
+                                            </td>
+
+                                            {/* Status & Actions */}
+                                            <td class="py-3 px-4 text-center">
+                                                <div class="flex flex-col items-center gap-1.5 justify-center">
+                                                    <span class={`px-2.5 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap inline-block ${getStatusColor(job.status)}`}>
+                                                        {getStatusText(job.status)}
+                                                    </span>
+                                                    {job.status !== 'Delivered' ? (
+                                                        <button 
+                                                            onClick={() => handleUpdateStatus(job.id, job.status, job.cost)}
+                                                            class={`px-2.5 py-1 rounded-lg text-[10px] font-bold text-white transition-all whitespace-nowrap ${
+                                                                job.status === 'Under Inspection' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                                                            }`}
+                                                        >
+                                                            {job.status === 'Under Inspection' ? 'جاهز للتسليم' : 'تسليم وقبض'}
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => {
+                                                                setReceipt({
+                                                                    id: job.id,
+                                                                    type: 'maintenance',
+                                                                    date: new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                                                    customer: job.customer_name,
+                                                                    customerPhone: job.customer_phone,
+                                                                    paymentMethod: 'Cash',
+                                                                    items: [{
+                                                                        brand: 'صيانة جهاز',
+                                                                        name: job.device_model,
+                                                                        imei: job.imei,
+                                                                        price: job.cost
+                                                                    }],
+                                                                    total: job.cost,
+                                                                    maintenanceNote: job.problem_description,
+                                                                    warrantyDays: job.warranty_days
+                                                                });
+                                                            }}
+                                                            class="px-2 py-1 bg-slate-850 hover:bg-slate-800 text-slate-350 font-bold rounded-lg text-[10px] flex items-center gap-1 mx-auto border border-slate-800"
+                                                        >
+                                                            <Icon name="printer" className="w-3 h-3" /> طباعة الوصل
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {filteredJobs.length === 0 && (
                                         <tr>
-                                            <td colspan="8" class="py-12 text-center text-slate-500 text-sm">لا توجد أجهزة صيانة مطابقة للبحث أو الفلتر.</td>
+                                            <td colspan="5" class="py-12 text-center text-slate-500 text-sm">لا توجد أجهزة صيانة مطابقة للبحث أو الفلتر.</td>
                                         </tr>
                                     )}
                                 </tbody>
