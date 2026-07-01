@@ -144,6 +144,8 @@ class SaleItemCreate(SaleItemBase):
 class SaleItemResponse(SaleItemBase):
     id: UUID
     sale_id: UUID
+    product: Optional[ProductResponse] = None
+    inventory_item: Optional[InventoryItemResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
 
