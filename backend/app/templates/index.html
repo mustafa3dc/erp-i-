@@ -843,6 +843,7 @@
             };
             
             const filteredProducts = products.filter(p => {
+                if (p.type === 'Maintenance') return false;
                 const isAvailable = p.type !== 'Phone' || p.items.some(i => i.status === 'Available');
                 if (!isAvailable) return false;
                 
@@ -1122,7 +1123,7 @@
 
                         {/* Category filter tabs */}
                         <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar">
-                            {['All', 'Phone', 'Accessory', 'Maintenance'].map(cat => (
+                            {['All', 'Phone', 'Accessory'].map(cat => (
                                 <button 
                                     key={cat}
                                     onClick={() => setPosFilter(cat)}
@@ -1135,7 +1136,6 @@
                                     {cat === 'All' && 'الكل'}
                                     {cat === 'Phone' && 'هواتف'}
                                     {cat === 'Accessory' && 'إكسسوارات'}
-                                    {cat === 'Maintenance' && 'صيانة'}
                                 </button>
                             ))}
                         </div>
