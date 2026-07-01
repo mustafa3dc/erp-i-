@@ -1327,9 +1327,10 @@
                     </div>
 
                     {/* Receipt Modal */}
-                    {receipt && (() => {
+                     {receipt && (() => {
                         const s = getShopSettings();
                         const shopName = s.shopName || 'متجر الموبايل';
+                        const logoLetter = shopName.trim().charAt(0).toUpperCase();
                         const currency = s.currency || 'د.ع';
                         const phone = s.phone || '';
                         const email = s.email || '';
@@ -1352,7 +1353,7 @@
                                                     <div class="mnt-head-title">وصل صيانة وأمانة</div>
                                                     <div class="mnt-head-sub">Maintenance & Service Receipt</div>
                                                 </div>
-                                                <div class="mnt-head-logo">صيانة</div>
+                                                <div class="mnt-head-logo">{logoLetter}</div>
                                             </div>
 
                                             {/* Company block */}
@@ -1446,8 +1447,11 @@
                                         <div class="inv">
                                             {/* Head: INVOICE + Logo */}
                                             <div class="inv-head">
-                                                <div class="inv-head-title">INVOICE</div>
-                                                <div class="inv-head-logo">LOGO</div>
+                                                <div>
+                                                    <div class="inv-head-title">INVOICE</div>
+                                                    <div class="inv-head-sub">Sales Receipt / فاتورة مبيعات</div>
+                                                </div>
+                                                <div class="inv-head-logo">{logoLetter}</div>
                                             </div>
 
                                             {/* Company block */}
@@ -2855,6 +2859,7 @@
                     {receipt && (() => {
                         const s = getShopSettings();
                         const shopName = s.shopName || 'متجر الموبايل';
+                        const logoLetter = shopName.trim().charAt(0).toUpperCase();
                         const currency = s.currency || 'د.ع';
                         const phone = s.phone || '';
                         const email = s.email || '';
@@ -2873,7 +2878,7 @@
                                                 <div class="mnt-head-title">وصل صيانة وأمانة</div>
                                                 <div class="mnt-head-sub">Maintenance & Service Receipt</div>
                                             </div>
-                                            <div class="mnt-head-logo">صيانة</div>
+                                            <div class="mnt-head-logo">{logoLetter}</div>
                                         </div>
 
                                         {/* Company block */}
