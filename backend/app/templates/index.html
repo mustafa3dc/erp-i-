@@ -201,8 +201,7 @@
             return (10000 + (num % 90000)).toString();
         };
 
-        // Popular brands and their models map for autocompleting selections (updated for 2026 models)
-        const BRAND_MODELS = {
+        // Popular brands and their models map f        const BRAND_MODELS = {
             "Apple": [
                 "iPhone 17 Pro Max", "iPhone 17 Pro", "iPhone 17 Plus", "iPhone 17", "iPhone 17 Slim",
                 "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 Plus", "iPhone 16",
@@ -214,8 +213,10 @@
                 "iPhone XS Max", "iPhone XS", "iPhone XR", "iPhone X",
                 "iPhone 8 Plus", "iPhone 8", "iPhone 7 Plus", "iPhone 7",
                 "iPhone SE (2022)", "iPhone SE (2020)", "iPhone 6s Plus", "iPhone 6s",
-                "iPad Pro 12.9", "iPad Pro 11", "iPad Air 5", "iPad Air 4", "iPad 10th Gen",
-                "iPad mini 6", "Apple Watch Ultra 2", "Apple Watch Series 9", "Apple Watch SE"
+                "iPad 10", "iPad 9", "iPad 8", "iPad 7", "iPad 6",
+                "iPad Air 6", "iPad Air 5", "iPad Air 4", "iPad Air 3",
+                "iPad Pro 12.9", "iPad Pro 11", "iPad mini 6", "iPad mini 5",
+                "Apple Watch Ultra 2", "Apple Watch Series 9", "Apple Watch SE"
             ],
             "Samsung": [
                 "Galaxy S26 Ultra", "Galaxy S26+", "Galaxy S26", "Galaxy S25 Ultra", "Galaxy S25+", "Galaxy S25",
@@ -252,19 +253,31 @@
                 "Galaxy F23", "Galaxy F22", "Galaxy F15", "Galaxy F14", "Galaxy F13", "Galaxy F12", "Galaxy F02"
             ],
             "Xiaomi": [
-                "Xiaomi 16 Ultra", "Xiaomi 16 Pro", "Xiaomi 16",
                 "Xiaomi 15 Ultra", "Xiaomi 15 Pro", "Xiaomi 15",
-                "Xiaomi 14 Ultra", "Xiaomi 14 Pro", "Xiaomi 14",
-                "Xiaomi 13T Pro", "Xiaomi 13T", "Xiaomi 13 Ultra", "Xiaomi 13 Pro",
-                "Xiaomi 12T Pro", "Xiaomi 12T", "Xiaomi 12 Pro", "Xiaomi 12",
-                "Redmi Note 15 Pro+", "Redmi Note 15 Pro", "Redmi Note 15",
-                "Redmi Note 13 Pro+ 5G", "Redmi Note 13 Pro 5G", "Redmi Note 13 Pro", "Redmi Note 13 5G", "Redmi Note 13",
-                "Redmi Note 12 Pro+", "Redmi Note 12 Pro", "Redmi Note 12 5G", "Redmi Note 12", "Redmi Note 12S",
-                "Redmi Note 11 Pro+ 5G", "Redmi Note 11 Pro 5G", "Redmi Note 11 Pro", "Redmi Note 11S", "Redmi Note 11",
+                "Xiaomi 14 Ultra", "Xiaomi 14 Pro", "Xiaomi 14", "Xiaomi 14T",
+                "Xiaomi 13 Ultra", "Xiaomi 13 Pro", "Xiaomi 13", "Xiaomi 13T Pro", "Xiaomi 13T",
+                "Xiaomi 12 Pro", "Xiaomi 12", "Xiaomi 12S", "Xiaomi 12T",
+                "Mi 11T", "Mi 11", "Mi 10T", "Mi 10", "Mi 9", "Mi 8", "Mi 6", "Mi 5", "Mi 4", "Mi 3", "Mi 2", "Mi 1",
+                "Redmi Note 14 Pro", "Redmi Note 14", "Redmi Note 13 Pro", "Redmi Note 13",
+                "Redmi Note 12 Pro", "Redmi Note 12", "Redmi Note 11 Pro", "Redmi Note 11",
                 "Redmi Note 10 Pro", "Redmi Note 10", "Redmi Note 9 Pro", "Redmi Note 9",
-                "Redmi 13", "Redmi 13C", "Redmi 12", "Redmi 12C", "Redmi 10C", "Redmi A3", "Redmi A2+",
-                "Poco F6 Pro", "Poco F6", "Poco X6 Pro", "Poco X6", "Poco M6 Pro", "Poco F5 Pro",
-                "Poco F5", "Poco X5 Pro", "Poco X5", "Poco M5", "Poco F4 GT", "Poco X4 Pro 5G"
+                "Redmi Note 8 Pro", "Redmi Note 8", "Redmi Note 7", "Redmi Note 6 Pro",
+                "Redmi Note 5", "Redmi Note 4", "Redmi Note 3", "Redmi Note 2", "Redmi Note 1",
+                "Redmi 14", "Redmi 13", "Redmi 12", "Redmi 10", "Redmi 9", "Redmi 8", "Redmi 7",
+                "Redmi 6", "Redmi 5", "Redmi 4", "Redmi 3", "Redmi 2", "Redmi 1",
+                "Redmi 6A", "Redmi 7A", "Redmi 8A", "Redmi 9A", "Redmi 9C", "Redmi 10A", "Redmi 10C",
+                "Redmi A3", "Redmi A2", "Redmi A1",
+                "Redmi K70", "Redmi K60", "Redmi K50", "Redmi K40", "Redmi K30", "Redmi K20",
+                "Poco F6", "Poco F5", "Poco F4", "Poco F3", "Poco F2 Pro", "Poco F1",
+                "Poco X6 Pro", "Poco X5 Pro", "Poco X4 Pro", "Poco X3 Pro", "Poco X2",
+                "Poco M6 Pro", "Poco M5", "Poco M4", "Poco M3", "Poco M2",
+                "Poco C65", "Poco C50", "Poco C40",
+                "Xiaomi MIX Fold 4", "Xiaomi MIX Fold 3", "Xiaomi MIX Fold 2", "Xiaomi MIX Fold",
+                "Xiaomi MIX Flip", "Xiaomi MIX 4", "Xiaomi MIX 3", "Xiaomi MIX 2S", "Xiaomi MIX 2", "Xiaomi MIX",
+                "Xiaomi Civi 4 Pro", "Xiaomi Civi 3", "Xiaomi Civi 2", "Xiaomi Civi 1S", "Xiaomi Civi",
+                "Black Shark 5 Pro", "Black Shark 5 RS", "Black Shark 5", "Black Shark 4 Pro", "Black Shark 4S",
+                "Black Shark 4", "Black Shark 3S", "Black Shark 3 Pro", "Black Shark 3", "Black Shark 2 Pro",
+                "Black Shark 2", "Black Shark Helo", "Black Shark 1"
             ],
             "Huawei": [
                 "Pura 70 Ultra", "Pura 70 Pro+", "Pura 70 Pro", "Pura 70",
@@ -275,11 +288,23 @@
                 "Nova 10", "Nova 10 SE", "Nova 9 SE", "Nova 8", "Nova 7i", "Y9a", "Y9 Prime"
             ],
             "Realme": [
-                "Realme GT 6", "Realme GT 6T", "Realme GT Neo 6", "Realme GT Neo 5", "Realme GT3",
+                "Realme 14 Pro+", "Realme 14 Pro", "Realme 14",
+                "Realme 13 Pro+", "Realme 13 Pro", "Realme 13",
                 "Realme 12 Pro+", "Realme 12 Pro", "Realme 12+", "Realme 12 5G", "Realme 12", "Realme 12x",
-                "Realme 11 Pro+", "Realme 11 Pro", "Realme 11 5G", "Realme 11", "Realme 10 Pro+", "Realme 10 Pro",
-                "Realme 10", "Realme 9 Pro+", "Realme 9", "Realme 8 Pro", "Realme 8",
-                "Realme C67", "Realme C65", "Realme C55", "Realme C53", "Realme C51", "Realme C35", "Realme C30", "Realme Note 50"
+                "Realme 11 Pro+", "Realme 11 Pro", "Realme 11 5G", "Realme 11",
+                "Realme 10 Pro+", "Realme 10 Pro", "Realme 10",
+                "Realme 9 Pro+", "Realme 9 Pro", "Realme 9",
+                "Realme 8 Pro", "Realme 8", "Realme 7 Pro", "Realme 7",
+                "Realme 6 Pro", "Realme 6", "Realme 5 Pro", "Realme 5",
+                "Realme 3 Pro", "Realme 3", "Realme 2 Pro", "Realme 2", "Realme 1",
+                "Realme C67", "Realme C65", "Realme C63", "Realme C61", "Realme C55", "Realme C53", "Realme C51",
+                "Realme C35", "Realme C33", "Realme C31", "Realme C30", "Realme C25", "Realme C21", "Realme C17",
+                "Realme C15", "Realme C12", "Realme C11", "Realme C3", "Realme C2", "Realme C1",
+                "Realme GT6", "Realme GT5", "Realme GT3", "Realme GT2 Pro", "Realme GT2",
+                "Realme GT Neo 6", "Realme GT Neo 5", "Realme GT Neo 3", "Realme GT Neo 2", "Realme GT Neo", "Realme GT",
+                "Realme Narzo 70", "Realme Narzo 60", "Realme Narzo 50", "Realme Narzo 30", "Realme Narzo 20", "Realme Narzo 10",
+                "Realme X50 Pro", "Realme X7 Pro", "Realme X3 SuperZoom", "Realme X2 Pro", "Realme X2", "Realme XT", "Realme X",
+                "Realme Note 50"
             ],
             "Infinix": [
                 "Zero Ultra", "Zero 30 5G", "Zero 30", "Zero 20",
