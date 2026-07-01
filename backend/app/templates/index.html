@@ -1813,6 +1813,21 @@
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-400 mb-1">توصيف المشكلة والقطع المستبدلة</label>
+                                <div class="flex flex-wrap gap-1.5 mb-2.5">
+                                    {["تبديل شاشة", "تبديل بطارية", "تبديل ظهر", "مشكلة بالبورد", "قاعدة شحن", "صيانة سماعة/مايك"].map(prob => (
+                                        <button
+                                            type="button"
+                                            key={prob}
+                                            onClick={() => {
+                                                const current = problem ? problem.trim() : '';
+                                                setProblem(current ? `${current} — ${prob}` : prob);
+                                            }}
+                                            class="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-850 text-[10px] font-bold text-slate-400 hover:text-slate-200 border border-slate-800 transition-all"
+                                        >
+                                            + {prob}
+                                        </button>
+                                    ))}
+                                </div>
                                 <textarea rows="2" value={problem} onChange={e => setProblem(e.target.value)} placeholder="مثال: تبديل شاشة مكسورة — الزبون يشتكي من حرارة في البطارية" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 resize-none" />
                             </div>
                             <div class="flex gap-3">
