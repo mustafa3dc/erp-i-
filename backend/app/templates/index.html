@@ -201,9 +201,11 @@
             return (10000 + (num % 90000)).toString();
         };
 
-        // Popular brands and their models map for autocompleting selections
+        // Popular brands and their models map for autocompleting selections (updated for 2026 models)
         const BRAND_MODELS = {
             "Apple": [
+                "iPhone 17 Pro Max", "iPhone 17 Pro", "iPhone 17 Plus", "iPhone 17", "iPhone 17 Slim",
+                "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 Plus", "iPhone 16",
                 "iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15 Plus", "iPhone 15",
                 "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 14 Plus", "iPhone 14",
                 "iPhone 13 Pro Max", "iPhone 13 Pro", "iPhone 13", "iPhone 13 mini",
@@ -216,12 +218,14 @@
                 "iPad mini 6", "Apple Watch Ultra 2", "Apple Watch Series 9", "Apple Watch SE"
             ],
             "Samsung": [
+                "Galaxy S26 Ultra", "Galaxy S26+", "Galaxy S26",
+                "Galaxy S25 Ultra", "Galaxy S25+", "Galaxy S25", "Galaxy S25 FE",
                 "Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24",
                 "Galaxy S23 Ultra", "Galaxy S23+", "Galaxy S23", "Galaxy S23 FE",
                 "Galaxy S22 Ultra", "Galaxy S22+", "Galaxy S22",
                 "Galaxy S21 Ultra", "Galaxy S21+", "Galaxy S21 FE", "Galaxy S21",
                 "Galaxy S20 Ultra", "Galaxy S20 FE", "Galaxy Note 20 Ultra", "Galaxy Note 20",
-                "Galaxy Note 10+", "Galaxy Note 10", "Galaxy Z Fold5", "Galaxy Z Flip5",
+                "Galaxy Note 10+", "Galaxy Note 10", "Galaxy Z Fold6", "Galaxy Z Flip6", "Galaxy Z Fold5", "Galaxy Z Flip5",
                 "Galaxy A55 5G", "Galaxy A35 5G", "Galaxy A25 5G", "Galaxy A15 5G", "Galaxy A15",
                 "Galaxy A05s", "Galaxy A05", "Galaxy A54 5G", "Galaxy A34 5G", "Galaxy A24",
                 "Galaxy A14 5G", "Galaxy A14", "Galaxy A04s", "Galaxy A04", "Galaxy A73 5G",
@@ -230,9 +234,12 @@
                 "Galaxy A12", "Galaxy A10s", "Galaxy A70", "Galaxy A50"
             ],
             "Xiaomi": [
+                "Xiaomi 16 Ultra", "Xiaomi 16 Pro", "Xiaomi 16",
+                "Xiaomi 15 Ultra", "Xiaomi 15 Pro", "Xiaomi 15",
                 "Xiaomi 14 Ultra", "Xiaomi 14 Pro", "Xiaomi 14",
                 "Xiaomi 13T Pro", "Xiaomi 13T", "Xiaomi 13 Ultra", "Xiaomi 13 Pro",
                 "Xiaomi 12T Pro", "Xiaomi 12T", "Xiaomi 12 Pro", "Xiaomi 12",
+                "Redmi Note 15 Pro+", "Redmi Note 15 Pro", "Redmi Note 15",
                 "Redmi Note 13 Pro+ 5G", "Redmi Note 13 Pro 5G", "Redmi Note 13 Pro", "Redmi Note 13 5G", "Redmi Note 13",
                 "Redmi Note 12 Pro+", "Redmi Note 12 Pro", "Redmi Note 12 5G", "Redmi Note 12", "Redmi Note 12S",
                 "Redmi Note 11 Pro+ 5G", "Redmi Note 11 Pro 5G", "Redmi Note 11 Pro", "Redmi Note 11S", "Redmi Note 11",
@@ -263,14 +270,14 @@
                 "Smart 8 Pro", "Smart 8", "Smart 8 HD", "Smart 7", "Smart 6"
             ],
             "Honor": [
-                "Magic 6 Pro", "Magic 6", "Magic V2", "Magic 5 Pro", "Magic 5",
+                "Magic 7 Pro", "Magic 6 Pro", "Magic 6", "Magic V2", "Magic 5 Pro", "Magic 5",
                 "Honor 200 Pro", "Honor 200", "Honor 200 Lite", "Honor 90", "Honor 90 Lite",
                 "Honor 70", "Honor 50", "Honor X9b", "Honor X8b", "Honor X7b", "Honor X9a",
                 "Honor X8a", "Honor X7a", "Honor X6a", "Honor X9", "Honor X8", "Honor X7"
             ],
             "Oppo": [
                 "Find X7 Ultra", "Find X7", "Find X6 Pro", "Find X5 Pro",
-                "Reno 12 Pro", "Reno 12", "Reno 12 F", "Reno 11 Pro", "Reno 11", "Reno 11 F",
+                "Reno 13 Pro", "Reno 13", "Reno 12 Pro", "Reno 12", "Reno 12 F", "Reno 11 Pro", "Reno 11", "Reno 11 F",
                 "Reno 10 Pro+", "Reno 10 Pro", "Reno 10", "Reno 9", "Reno 8 Pro", "Reno 8", "Reno 7",
                 "A98", "A78 5G", "A78", "A58", "A38", "A18", "A77s", "A57", "A17", "A96", "A76", "A16"
             ]
