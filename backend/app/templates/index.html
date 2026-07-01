@@ -192,6 +192,15 @@
                       .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
         };
 
+        // Generate a clean, short 5-digit receipt number from a UUID
+        const getShortId = (uuidStr) => {
+            if (!uuidStr) return '0000';
+            const clean = uuidStr.replace(/[^a-fA-F0-9]/g, '');
+            if (clean.length < 6) return '0000';
+            const num = parseInt(clean.slice(-6), 16);
+            return (10000 + (num % 90000)).toString();
+        };
+
         // Intercept all keyboard events to convert Arabic/Farsi digits to English instantly as typed
         window.addEventListener('keypress', (e) => {
             const char = String.fromCharCode(e.which || e.keyCode);
@@ -1052,7 +1061,7 @@
                         const email = s.email || '';
                         const address = s.address || '';
                         const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
-                        const invoiceNum = 'INV-' + receipt.id;
+                        const invoiceNum = 'INV-' + getShortId(receipt.id);
                         
                         return (
                         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
@@ -2195,7 +2204,7 @@
                         const email = s.email || '';
                         const address = s.address || '';
                         const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
-                        const invoiceNum = 'INV-' + receipt.id;
+                        const invoiceNum = 'INV-' + getShortId(receipt.id);
                         
                         return (
                         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
