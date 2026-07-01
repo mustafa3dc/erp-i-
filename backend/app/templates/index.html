@@ -913,29 +913,68 @@
                     </div>
 
                     {/* Secondary Row Details */}
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Warehouse Status */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg">
-                            <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
-                                <Icon name="package" className="w-4 h-4 text-emerald-400" />
-                                حالة المخزن المتوفر
-                            </h3>
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
-                                    <span class="text-slate-300 text-sm">إجمالي الأجهزة الجاهزة للبيع</span>
-                                    <span class="font-bold text-sm text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/10">{totalStockItems} جهاز</span>
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[300px]">
+                            <div>
+                                <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
+                                    <Icon name="package" className="w-4 h-4 text-emerald-400" />
+                                    حالة المخزن المتوفر
+                                </h3>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+                                        <span class="text-slate-300 text-sm">إجمالي الأجهزة للبيع</span>
+                                        <span class="font-bold text-sm text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/10">{totalStockItems} جهاز</span>
+                                    </div>
+                                    <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+                                        <span class="text-slate-300 text-sm">إجمالي قيمة المخزن</span>
+                                        <span class="font-extrabold text-sm text-sky-400 font-mono">
+                                            {products.reduce((acc, p) => acc + (parseFloat(p.purchase_price) * p.items.filter(i => i.status === 'Available').length), 0).toLocaleString()} <span class="text-xs font-bold text-slate-500">{currency}</span>
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
-                                    <span class="text-slate-300 text-sm">إجمالي قيمة المخزن (التكلفة)</span>
-                                    <span class="font-extrabold text-sm text-sky-400 font-mono">
-                                        {products.reduce((acc, p) => acc + (parseFloat(p.purchase_price) * p.items.filter(i => i.status === 'Available').length), 0).toLocaleString()} <span class="text-xs font-bold text-slate-500">{currency}</span>
-                                    </span>
+                            </div>
+                        </div>
+
+                        {/* Low Stock Alerts */}
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[300px]">
+                            <div>
+                                <h3 class="font-bold text-base mb-4 text-rose-400 flex items-center gap-2">
+                                    <Icon name="alert-triangle" className="w-4 h-4 text-rose-400" />
+                                    بضائع توشك على النفاد (الكمية 2 أو أقل)
+                                </h3>
+                                <div class="space-y-2.5 overflow-y-auto max-h-[190px] pr-1">
+                                    {products.filter(p => p.type !== 'Maintenance').map(p => {
+                                        const availableCount = p.items.filter(i => i.status === 'Available').length;
+                                        return { product: p, count: availableCount };
+                                    }).filter(x => x.count <= 2).map(x => (
+                                        <div key={x.product.id} class="flex justify-between items-center p-3 bg-slate-950/60 border border-slate-850 rounded-xl">
+                                            <div>
+                                                <div class="font-bold text-[11px] text-slate-200">{x.product.brand} - {x.product.name}</div>
+                                                <div class="text-[9px] text-slate-500 mt-0.5">{x.product.type === 'Phone' ? 'موبايل' : 'إكسسوار'}</div>
+                                            </div>
+                                            <span class={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                                                x.count === 0 
+                                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                            }`}>
+                                                {x.count === 0 ? 'نافذ تماماً' : `متبقي: ${x.count}`}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {products.filter(p => p.type !== 'Maintenance').map(p => {
+                                        return p.items.filter(i => i.status === 'Available').length;
+                                    }).filter(c => c <= 2).length === 0 && (
+                                        <div class="text-center py-12 text-slate-500 text-xs">
+                                            🟢 كل البضائع متوفرة بكميات كافية في المخزن!
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Recent Bills */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg">
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg h-[300px]">
                             <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
                                 <Icon name="receipt" className="w-4 h-4 text-emerald-400" />
                                 آخر فواتير المبيعات
@@ -1589,6 +1628,12 @@
             const [selectedParts, setSelectedParts] = useState({});
             const [customPartInput, setCustomPartInput] = useState('');
 
+            // Charger specs states
+            const [isChargerSpec, setIsChargerSpec] = useState(false);
+            const [chargerWatts, setChargerWatts] = useState('');
+            const [cableLength, setCableLength] = useState('');
+            const [boxContents, setBoxContents] = useState('both');
+
             const defaultPhoneBrands = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo"];
             const defaultAccessoryBrands = ["Anker", "Joyroom", "LDNIO", "Baseus", "Remax", "Yesido", "Hoco", "Oraimo", "Apple", "Samsung", "Xiaomi", "Green Lion", "McDodo", "Awei", "G-Tab", "Pavareal"];
 
@@ -1626,6 +1671,23 @@
                     finalName = `${finalName} (${compatibleDevice.trim()})`;
                 }
 
+                if (activeCategory === 'Accessory' && isChargerSpec) {
+                    const specs = [];
+                    if (chargerWatts.trim()) specs.push(`${chargerWatts.trim()}W`);
+                    if (cableLength.trim()) specs.push(`طول ${cableLength.trim()}م`);
+                    
+                    let contentsText = '';
+                    if (boxContents === 'both') contentsText = 'شاحن مع كيبل';
+                    else if (boxContents === 'adapter') contentsText = 'شاحن فقط';
+                    else if (boxContents === 'cable') contentsText = 'كيبل فقط';
+                    
+                    if (contentsText) specs.push(contentsText);
+                    
+                    if (specs.length > 0) {
+                        finalName = `${finalName} (${specs.join(' - ')})`;
+                    }
+                }
+
                 const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
 
                 const newItem = {
@@ -1650,6 +1712,10 @@
                 setImeisInput('');
                 setQuantity('1');
                 setBatteryHealth('');
+                setIsChargerSpec(false);
+                setChargerWatts('');
+                setCableLength('');
+                setBoxContents('both');
             };
 
             const handleSaveEntireList = async () => {
@@ -1722,6 +1788,23 @@
                         setCompatibleDevice('');
                     } else {
                         let finalName = name.trim();
+                        if (activeCategory === 'Accessory' && isChargerSpec) {
+                            const specs = [];
+                            if (chargerWatts.trim()) specs.push(`${chargerWatts.trim()}W`);
+                            if (cableLength.trim()) specs.push(`طول ${cableLength.trim()}م`);
+                            
+                            let contentsText = '';
+                            if (boxContents === 'both') contentsText = 'شاحن مع كيبل';
+                            else if (boxContents === 'adapter') contentsText = 'شاحن فقط';
+                            else if (boxContents === 'cable') contentsText = 'كيبل فقط';
+                            
+                            if (contentsText) specs.push(contentsText);
+                            
+                            if (specs.length > 0) {
+                                finalName = `${finalName} (${specs.join(' - ')})`;
+                            }
+                        }
+
                         const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
 
                         await axios.post('/products/', {
@@ -1741,6 +1824,10 @@
                         setImeisInput('');
                         setQuantity('1');
                         setBatteryHealth('');
+                        setIsChargerSpec(false);
+                        setChargerWatts('');
+                        setCableLength('');
+                        setBoxContents('both');
                     }
                     
                     setCustomBrand('');
@@ -1979,6 +2066,69 @@
                                              </datalist>
                                          )}
                                     </div>
+                                     {activeCategory === 'Accessory' && (
+                                         <div class="p-4 bg-slate-950/60 border border-slate-850 rounded-2xl space-y-4 mb-4">
+                                             <label class="flex items-center gap-2 cursor-pointer select-none">
+                                                 <input 
+                                                     type="checkbox" 
+                                                     checked={isChargerSpec} 
+                                                     onChange={e => setIsChargerSpec(e.target.checked)} 
+                                                     class="w-4 h-4 rounded border-slate-800 text-emerald-500 focus:ring-0 focus:ring-offset-0 bg-slate-950"
+                                                 />
+                                                 <span class="text-xs font-bold text-slate-350">تخصيص مواصفات الشاحن / الكيبل (واط، طول، نوع)</span>
+                                             </label>
+
+                                             {isChargerSpec && (
+                                                 <div class="grid grid-cols-1 gap-3 pt-2 border-t border-slate-900">
+                                                     <div class="grid grid-cols-2 gap-2">
+                                                         <div>
+                                                             <label class="block text-[10px] text-slate-500 mb-1">القدرة بالواط (Watts)</label>
+                                                             <input 
+                                                                 type="text" 
+                                                                 placeholder="مثال: 20" 
+                                                                 value={chargerWatts} 
+                                                                 onChange={e => setChargerWatts(toEnglishDigits(e.target.value).replace(/[^0-9]/g, ''))}
+                                                                 class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-center text-slate-200 focus:outline-none focus:border-emerald-500"
+                                                             />
+                                                         </div>
+                                                         <div>
+                                                             <label class="block text-[10px] text-slate-500 mb-1">طول الكيبل (متر)</label>
+                                                             <input 
+                                                                 type="text" 
+                                                                 placeholder="مثال: 1 أو 1.5" 
+                                                                 value={cableLength} 
+                                                                 onChange={e => setCableLength(e.target.value)}
+                                                                 class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-center text-slate-200 focus:outline-none focus:border-emerald-500"
+                                                             />
+                                                         </div>
+                                                     </div>
+                                                     <div>
+                                                         <label class="block text-[10px] text-slate-500 mb-1.5">نوع المنتج / المحتويات</label>
+                                                         <div class="grid grid-cols-3 gap-1">
+                                                             {[
+                                                                 { key: 'both', label: 'شاحن مع كيبل' },
+                                                                 { key: 'adapter', label: 'شاحن فقط' },
+                                                                 { key: 'cable', label: 'كيبل فقط' }
+                                                             ].map(opt => (
+                                                                 <button
+                                                                     type="button"
+                                                                     key={opt.key}
+                                                                     onClick={() => setBoxContents(opt.key)}
+                                                                     class={`py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
+                                                                         boxContents === opt.key 
+                                                                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                                                         : 'bg-slate-900 text-slate-450 border-transparent hover:text-slate-200'
+                                                                     }`}
+                                                                 >
+                                                                     {opt.label}
+                                                                 </button>
+                                                             ))}
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             )}
+                                         </div>
+                                     )}
                                     <div>
                                          <label class="block text-sm text-slate-400 mb-1">سعر الشراء (التكلفة للقطعة)</label>
                                          <input 

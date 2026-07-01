@@ -126,7 +126,8 @@ def run_bot():
                     welcome_msg = (
                         "👋 أهلاً بك في بوت إدارة متجر الموبايل!\n\n"
                         "🔍 للبحث: أرسل لي اسم أي جهاز، إكسسوار أو قطعة صيانة للبحث عنها.\n"
-                        "📋 للجرد: أرسل كلمة *الكل* أو *شعندي ماعندي* لعرض جرد كامل للمخزن."
+                        "📋 للجرد: أرسل كلمة *الكل* أو *شعندي ماعندي* لعرض جرد كامل للمخزن.\n"
+                        "⚠️ للنواقص: أرسل كلمة *نواقص* أو *خلص* أو *تقرير* لعرض القطع التي أوشكت على النفاد."
                     )
                     requests.post(f"{api_url}/sendMessage", json={"chat_id": chat_id, "text": welcome_msg, "parse_mode": "Markdown"})
                     continue
@@ -152,9 +153,30 @@ def run_bot():
                             for brand, name, qty, price in type_items:
                                 status_icon = "🟢" if qty > 0 else "🔴"
                                 price_formatted = f"{float(price):,}" if price else "0"
-                                reply_text += f"{status_icon} *{brand} - {name}* | المتوفر: {qty} | السعر: {price_formatted} د.إ\n"
+                                reply_text += f"{status_icon} *{brand} - {name}* | المتوفر: {qty} | السعر: {price_formatted} د.ع\n"
                             reply_text += "\n"
                                 
+                    requests.post(f"{api_url}/sendMessage", json={
+                        "chat_id": chat_id, 
+                        "text": reply_text,
+                        "parse_mode": "Markdown"
+                    })
+                    continue
+
+                # Handle "Shortages/Low Stock" command
+                if text.lower() in ["/shortages", "نواقص", "خلص", "تقرير"]:
+                    items = get_all_inventory()
+                    shortages = [item for item in items if item[2] <= 2 and item[4] != 'Maintenance']
+                    
+                    if not shortages:
+                        reply_text = "🟢 كل البضائع في المخزن متوفرة بكميات كافية (أكثر من قطعتين)!"
+                    else:
+                        reply_text = "⚠️ *تقرير البضائع التي توشك على النفاد (قطعتين أو أقل):*\n\n"
+                        for brand, name, qty, price, p_type in shortages:
+                            type_label = type_mapping.get(p_type, "بضاعة")
+                            status_desc = "🔴 نافذ تماماً" if qty == 0 else f"🟡 متبقي: {qty} قطع"
+                            reply_text += f"• *{brand} - {name}* ({type_label})\n  👈 {status_desc}\n"
+                            
                     requests.post(f"{api_url}/sendMessage", json={
                         "chat_id": chat_id, 
                         "text": reply_text,
