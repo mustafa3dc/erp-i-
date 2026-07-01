@@ -1411,6 +1411,8 @@
             const [showSoldItems, setShowSoldItems] = useState(false);
             const [purchaseList, setPurchaseList] = useState([]);
             const [isSavingList, setIsSavingList] = useState(false);
+            const [selectedParts, setSelectedParts] = useState({});
+            const [customPartInput, setCustomPartInput] = useState('');
 
             const defaultPhoneBrands = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo"];
             const defaultAccessoryBrands = ["Anker", "Joyroom", "LDNIO", "Baseus", "Remax", "Yesido", "Hoco", "Oraimo", "Apple", "Samsung", "Xiaomi", "Green Lion", "McDodo", "Awei", "G-Tab", "Pavareal"];
