@@ -294,3 +294,69 @@ def get_sales(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Sale).offset(skip).limit(limit).all()
 
 
+def create_maintenance_job(db: Session, job: schemas.MaintenanceJobCreate):
+    db_job = models.MaintenanceJob(
+        customer_name=job.customer_name,
+        customer_phone=job.customer_phone,
+        device_model=job.device_model,
+        imei=job.imei,
+        problem_description=job.problem_description,
+        cost=job.cost,
+        status=job.status,
+        warranty_days=job.warranty_days
+    )
+    db.add(db_job)
+    db.commit()
+    db.refresh(db_job)
+    return db_job
+
+
+def get_maintenance_jobs(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.MaintenanceJob).order_by(models.MaintenanceJob.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def update_maintenance_job(db: Session, job_id: str, status: str, cost: float = None):
+    from uuid import UUID
+    job_uuid = UUID(job_id) if isinstance(job_id, str) else job_id
+    db_job = db.query(models.MaintenanceJob).filter(models.MaintenanceJob.id == job_uuid).first()
+    if db_job:
+        # Check if it was already delivered to prevent duplicate accounting entries
+        already_delivered = db_job.status == "Delivered"
+        db_job.status = status
+        if cost is not None:
+            db_job.cost = cost
+        
+        if status == "Delivered" and not already_delivered and db_job.cost > 0:
+            cash_account = _get_or_create_account(db, "1010", "Cash (الصندوق)", models.AccountType.ASSET)
+            rev_account = _get_or_create_account(db, "4010", "Sales Revenue (إيراد المبيعات)", models.AccountType.REVENUE)
+            
+            db_entry = models.JournalEntry(
+                reference=f"MNT-{str(db_job.id)[:8].upper()}",
+                description=f"Maintenance Delivery for {db_job.customer_name} ({db_job.device_model})",
+                state=models.EntryState.POSTED
+            )
+            db.add(db_entry)
+            db.flush()
+            
+            # Debit Cash
+            db.add(models.JournalItem(
+                entry_id=db_entry.id,
+                account_id=cash_account.id,
+                debit=db_job.cost,
+                credit=0.00,
+                description="Maintenance collection"
+            ))
+            # Credit Revenue
+            db.add(models.JournalItem(
+                entry_id=db_entry.id,
+                account_id=rev_account.id,
+                debit=0.00,
+                credit=db_job.cost,
+                description="Maintenance revenue recognition"
+            ))
+            
+        db.commit()
+        db.refresh(db_job)
+    return db_job
+
+

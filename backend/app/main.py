@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from contextlib import asynccontextmanager
 import os
@@ -161,5 +161,26 @@ def update_telegram_settings(settings: TelegramTokenSettings):
     start_bot_process()
     is_running = bot_process is not None and bot_process.poll() is None
     return {"status": "success", "is_running": is_running}
+
+
+# Maintenance Endpoints
+@app.post("/maintenance/", response_model=schemas.MaintenanceJobResponse, status_code=status.HTTP_201_CREATED)
+def create_maintenance_job(job: schemas.MaintenanceJobCreate, db: Session = Depends(get_db)):
+    return crud.create_maintenance_job(db=db, job=job)
+
+@app.get("/maintenance/", response_model=List[schemas.MaintenanceJobResponse])
+def read_maintenance_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_maintenance_jobs(db=db, skip=skip, limit=limit)
+
+class UpdateMaintenanceJobRequest(BaseModel):
+    status: str
+    cost: Optional[float] = None
+
+@app.put("/maintenance/{job_id}/", response_model=schemas.MaintenanceJobResponse)
+def update_maintenance_job(job_id: str, request: UpdateMaintenanceJobRequest, db: Session = Depends(get_db)):
+    db_job = crud.update_maintenance_job(db=db, job_id=job_id, status=request.status, cost=request.cost)
+    if not db_job:
+        raise HTTPException(status_code=404, detail="Maintenance job not found")
+    return db_job
 
 

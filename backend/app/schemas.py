@@ -161,3 +161,24 @@ class SaleResponse(SaleBase):
     items: List[SaleItemResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class MaintenanceJobBase(BaseModel):
+    customer_name: str
+    customer_phone: Optional[str] = None
+    device_model: str
+    imei: Optional[str] = None
+    problem_description: Optional[str] = None
+    cost: Decimal = Field(default=Decimal("0.00"), ge=0)
+    status: str = "Under Inspection"
+    warranty_days: Optional[int] = 30
+
+class MaintenanceJobCreate(MaintenanceJobBase):
+    pass
+
+class MaintenanceJobResponse(MaintenanceJobBase):
+    id: UUID
+    created_at: DateTimeUTC
+    updated_at: DateTimeUTC
+
+    model_config = ConfigDict(from_attributes=True)

@@ -124,3 +124,19 @@ class SaleItem(Base):
     inventory_item = relationship("InventoryItem")
 
 
+class MaintenanceJob(Base):
+    __tablename__ = "maintenance_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_name = Column(String, nullable=False)
+    customer_phone = Column(String, nullable=True)
+    device_model = Column(String, nullable=False)
+    imei = Column(String, nullable=True)
+    problem_description = Column(Text, nullable=True)
+    cost = Column(Numeric(12, 2), nullable=False, default=0.00)
+    status = Column(String, nullable=False, default="Under Inspection") # "Under Inspection", "Repaired", "Delivered"
+    warranty_days = Column(Integer, nullable=True, default=30)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+

@@ -208,6 +208,7 @@
             const [journalEntries, setJournalEntries] = useState([]);
             const [products, setProducts] = useState([]);
             const [sales, setSales] = useState([]);
+            const [maintenanceJobs, setMaintenanceJobs] = useState([]);
             const [loading, setLoading] = useState(false);
 
             // Fetch data
@@ -218,10 +219,12 @@
                     const jeRes = await axios.get('/journal-entries/');
                     const prodRes = await axios.get('/products/');
                     const salesRes = await axios.get('/sales/');
+                    const mntRes = await axios.get('/maintenance/');
                     setAccounts(accRes.data);
                     setJournalEntries(jeRes.data);
                     setProducts(prodRes.data);
                     setSales(salesRes.data);
+                    setMaintenanceJobs(mntRes.data);
                 } catch (error) {
                     console.error("Error fetching data:", error);
                 } finally {
@@ -263,6 +266,13 @@
                                     <span>نقطة البيع (POS)</span>
                                 </button>
                                 <button 
+                                    onClick={() => setCurrentTab('maintenance_jobs')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'maintenance_jobs' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="wrench" className="w-5 h-5" />
+                                    <span>قسم الصيانة</span>
+                                </button>
+                                <button 
                                     onClick={() => setCurrentTab('inventory')}
                                     class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'inventory' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
@@ -297,6 +307,7 @@
                             <h1 class="text-xl font-bold text-slate-200">
                                 {currentTab === 'dashboard' && 'لوحة التحكم للمحل'}
                                 {currentTab === 'pos' && 'نقطة بيع سريعة (سجل فاتورة)'}
+                                {currentTab === 'maintenance_jobs' && 'إدارة واستلام أجهزة الصيانة'}
                                 {currentTab === 'inventory' && 'إدارة المنتجات والمستودع'}
                                 {currentTab === 'advanced' && 'إعدادات الحسابات المتقدمة'}
                                 {currentTab === 'settings' && 'إعدادات المتجر والفاتورة'}
@@ -313,6 +324,7 @@
                         <div class="flex-1 overflow-y-auto p-8">
                             {currentTab === 'dashboard' && <DashboardPage accounts={accounts} entries={journalEntries} sales={sales} products={products} />}
                             {currentTab === 'pos' && <POSPage products={products} sales={sales} refresh={fetchData} />}
+                            {currentTab === 'maintenance_jobs' && <MaintenanceJobsPage jobs={maintenanceJobs} refresh={fetchData} />}
                             {currentTab === 'inventory' && <InventoryPage products={products} refresh={fetchData} />}
                             {currentTab === 'advanced' && <AdvancedAccountingPage accounts={accounts} entries={journalEntries} refresh={fetchData} />}
                             {currentTab === 'settings' && <ShopSettingsPage />}
@@ -1061,6 +1073,7 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [quantity, setQuantity] = useState('1');
             const [batteryHealth, setBatteryHealth] = useState('');
+            const [showSoldItems, setShowSoldItems] = useState(false);
 
             const POPULAR_BRANDS = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo", "Vivo", "أخرى"];
 
@@ -1172,7 +1185,6 @@
                                     <label class="block text-sm text-slate-400 mb-1">الأجهزة المتوافقة (يمكنك كتابة عدة أجهزة)</label>
                                     <input 
                                         type="text" 
-                                        required
                                         value={compatibleDevice}
                                         onChange={e => setCompatibleDevice(e.target.value)}
                                         placeholder="مثال: Galaxy A13, A04s, M13 (أو افصل بينها بـ /)"
@@ -1298,18 +1310,33 @@
                             </button>
                         </div>
 
-                        {/* Search Input Bar */}
-                        <div class="mb-6 relative">
-                            <input 
-                                type="text"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                placeholder="البحث باسم الجهاز، الشركة، الأجهزة المتوافقة، أو الـ IMEI..."
-                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
-                            />
-                            <div class="absolute right-3 top-3.5 text-slate-500">
-                                <Icon name="search" className="w-4 h-4" />
+                        {/* Search Input Bar & Sold Toggle */}
+                        <div class="mb-6 flex gap-3">
+                            <div class="relative flex-1">
+                                <input 
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    placeholder="البحث باسم الجهاز، الشركة، الأجهزة المتوافقة، أو الـ IMEI..."
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                                />
+                                <div class="absolute right-3 top-3.5 text-slate-500">
+                                    <Icon name="search" className="w-4 h-4" />
+                                </div>
                             </div>
+                            <button 
+                                type="button"
+                                onClick={() => setShowSoldItems(!showSoldItems)}
+                                class={`px-4 py-2.5 rounded-xl border text-sm font-bold flex items-center gap-2 transition-all ${
+                                    showSoldItems 
+                                    ? 'bg-brand-500/10 text-brand-600 border-brand-500/20' 
+                                    : 'bg-slate-950 text-slate-500 border-slate-800 hover:text-slate-200'
+                                }`}
+                                title="عرض المواد المباعة"
+                            >
+                                <Icon name={showSoldItems ? "eye" : "eye-off"} className="w-4 h-4" />
+                                <span>المباعة</span>
+                            </button>
                         </div>
 
                         <div class="space-y-4">
@@ -1322,12 +1349,16 @@
                                 )
                                 .map(p => {
                                     const availableItems = p.items.filter(i => i.status === 'Available');
+                                    const itemsToDisplay = showSoldItems ? p.items : availableItems;
+                                    
+                                    if (itemsToDisplay.length === 0) return null;
+                                    
                                     return (
                                         <div key={p.id} class="p-5 bg-slate-950 border border-slate-850 rounded-xl">
                                             <div class="flex justify-between items-start">
                                                 <div>
                                                     <h4 class="font-bold text-slate-200 text-base">{p.brand} - {p.name}</h4>
-                                                    <div class="text-xs text-slate-400 mt-1">سعر البيع: {parseFloat(p.selling_price).toFixed(2)} د.إ</div>
+                                                    <div class="text-xs text-slate-400 mt-1">سعر البيع: {parseFloat(p.selling_price).toLocaleString()} د.ع</div>
                                                 </div>
                                                 <div class="text-left text-xs">
                                                     <span class={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
@@ -1341,14 +1372,14 @@
                                             </div>
 
                                             {/* IMEIs status */}
-                                            {p.type === 'Phone' && p.items.length > 0 && (
+                                            {p.items.length > 0 && (
                                                 <div class="mt-3 pt-3 border-t border-slate-900">
                                                     <div class="flex flex-wrap gap-2">
-                                                        {p.items.map(item => (
+                                                        {itemsToDisplay.map(item => (
                                                             <span key={item.id} class={`px-2 py-0.5 rounded font-mono text-[10px] border ${
                                                                 item.status === 'Available' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-500 line-through'
                                                             }`}>
-                                                                {item.imei} {item.battery_health ? `(🔋 ${item.battery_health}%)` : ''} ({item.status === 'Available' ? 'متوفر' : 'مباع'})
+                                                                {p.type === 'Phone' ? item.imei : 'قطعة'} {item.battery_health ? `(🔋 ${item.battery_health}%)` : ''} ({item.status === 'Available' ? 'متوفر' : 'مباع'})
                                                             </span>
                                                         ))}
                                                     </div>
@@ -1568,6 +1599,444 @@
                         placeholder={placeholder}
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
                     />
+                </div>
+            );
+        }
+
+        // Maintenance Jobs tracker page
+        function MaintenanceJobsPage({ jobs, refresh }) {
+            const [customerName, setCustomerName] = useState('');
+            const [customerPhone, setCustomerPhone] = useState('');
+            const [deviceModel, setDeviceModel] = useState('');
+            const [imei, setImei] = useState('');
+            const [problem, setProblem] = useState('');
+            const [cost, setCost] = useState('');
+            const [warrantyDays, setWarrantyDays] = useState('30');
+            const [errorMsg, setErrorMsg] = useState('');
+            const [activeTab, setActiveTab] = useState('All');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [receipt, setReceipt] = useState(null);
+
+            const handleCreateJob = async (e) => {
+                e.preventDefault();
+                setErrorMsg('');
+                if (!customerName || !deviceModel) {
+                    setErrorMsg("يرجى ملء الحقول الإلزامية (الاسم، والموديل).");
+                    return;
+                }
+
+                try {
+                    await axios.post('/maintenance/', {
+                        customer_name: customerName,
+                        customer_phone: customerPhone || null,
+                        device_model: deviceModel,
+                        imei: imei || null,
+                        problem_description: problem || null,
+                        cost: parseFloat(cost) || 0,
+                        status: "Under Inspection",
+                        warranty_days: parseInt(warrantyDays) || 30
+                    });
+                    // Reset
+                    setCustomerName('');
+                    setCustomerPhone('');
+                    setDeviceModel('');
+                    setImei('');
+                    setProblem('');
+                    setCost('');
+                    setWarrantyDays('30');
+                    setShowAddForm(false);
+                    refresh();
+                } catch (err) {
+                    setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء حفظ جهاز الصيانة.");
+                }
+            };
+
+            const handleUpdateStatus = async (jobId, currentStatus, currentCost) => {
+                let nextStatus = "Under Inspection";
+                if (currentStatus === "Under Inspection") nextStatus = "Repaired";
+                else if (currentStatus === "Repaired") nextStatus = "Delivered";
+                
+                try {
+                    const res = await axios.put(`/maintenance/${jobId}/`, {
+                        status: nextStatus,
+                        cost: parseFloat(currentCost) || 0
+                    });
+                    refresh();
+                    
+                    // If transitioned to Delivered, show receipt!
+                    if (nextStatus === "Delivered") {
+                        const s = getShopSettings();
+                        setReceipt({
+                            id: res.data.id,
+                            type: 'maintenance',
+                            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                            customer: res.data.customer_name,
+                            customerPhone: res.data.customer_phone,
+                            paymentMethod: 'Cash',
+                            items: [{
+                                brand: 'صيانة جهاز',
+                                name: res.data.device_model,
+                                imei: res.data.imei,
+                                price: res.data.cost
+                            }],
+                            total: res.data.cost,
+                            maintenanceNote: res.data.problem_description,
+                            warrantyDays: res.data.warranty_days
+                        });
+                    }
+                } catch (e) {
+                    alert("حدث خطأ أثناء تحديث حالة جهاز الصيانة.");
+                }
+            };
+
+            const printReceipt = () => {
+                window.print();
+            };
+
+            const filteredJobs = jobs.filter(job => {
+                const matchesTab = activeTab === 'All' || job.status === activeTab;
+                const matchesSearch = 
+                    job.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    job.device_model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (job.imei && job.imei.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (job.customer_phone && job.customer_phone.includes(searchQuery));
+                return matchesTab && matchesSearch;
+            });
+
+            const getStatusColor = (status) => {
+                switch(status) {
+                    case 'Under Inspection': return 'bg-amber-500/10 text-amber-500 border border-amber-500/10';
+                    case 'Repaired': return 'bg-sky-500/10 text-sky-500 border border-sky-500/10';
+                    case 'Delivered': return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/10';
+                    default: return 'bg-slate-500/10 text-slate-400 border border-slate-500/10';
+                }
+            };
+
+            const getStatusText = (status) => {
+                switch(status) {
+                    case 'Under Inspection': return 'تحت الفحص / التصليح';
+                    case 'Repaired': return 'جاهز للاستلام';
+                    case 'Delivered': return 'تم التسليم والقبض';
+                    default: return status;
+                }
+            };
+
+            return (
+                <div class="space-y-6">
+                    {/* Header Controls */}
+                    <div class="flex justify-between items-center bg-slate-900/60 p-6 border border-slate-800 rounded-3xl">
+                        <div class="flex gap-2">
+                            {['All', 'Under Inspection', 'Repaired', 'Delivered'].map(status => (
+                                <button 
+                                    key={status}
+                                    onClick={() => setActiveTab(status)}
+                                    class={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                        activeTab === status 
+                                        ? 'bg-brand-500/10 text-brand-600 border border-brand-500/20' 
+                                        : 'bg-slate-950 text-slate-450 border border-slate-800 hover:text-slate-200'
+                                    }`}
+                                >
+                                    {status === 'All' && 'كل الأجهزة'}
+                                    {status === 'Under Inspection' && 'تحت الفحص صيانة'}
+                                    {status === 'Repaired' && 'جاهز للاستلام'}
+                                    {status === 'Delivered' && 'تم تسليمه'}
+                                </button>
+                            ))}
+                        </div>
+                        <button 
+                            onClick={() => setShowAddForm(!showAddForm)}
+                            class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all"
+                        >
+                            <Icon name="plus" className="w-4 h-4" />
+                            استلام جهاز جديد
+                        </button>
+                    </div>
+
+                    {showAddForm && (
+                        /* Add form modal/panel */
+                        <form onSubmit={handleCreateJob} class="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4 max-w-2xl">
+                            <h3 class="font-bold text-base text-brand-600">استمارة استلام جهاز صيانة جديد</h3>
+                            {errorMsg && (
+                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl">
+                                    {errorMsg}
+                                </div>
+                            )}
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">اسم الزبون *</label>
+                                    <input type="text" required value={customerName} onChange={e => setCustomerName(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">رقم الهاتف</label>
+                                    <input type="text" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">موديل الجهاز *</label>
+                                    <input type="text" required value={deviceModel} onChange={e => setDeviceModel(e.target.value)} placeholder="مثال: iPhone 12 Pro" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">رقم الـ IMEI أو التسلسلي</label>
+                                    <input type="text" value={imei} onChange={e => setImei(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">تكلفة الصيانة المقدرة (د.ع)</label>
+                                    <input 
+                                        type="text" 
+                                        inputMode="decimal"
+                                        value={cost} 
+                                        onChange={e => {
+                                            const clean = toEnglishDigits(e.target.value).replace(/[^0-9.]/g, '');
+                                            setCost(clean);
+                                        }} 
+                                        placeholder="0" 
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 text-right font-mono" 
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">كفالة الصيانة (أيام)</label>
+                                    <input 
+                                        type="text" 
+                                        inputMode="numeric"
+                                        value={warrantyDays} 
+                                        onChange={e => {
+                                            const clean = toEnglishDigits(e.target.value).replace(/[^0-9]/g, '');
+                                            setWarrantyDays(clean);
+                                        }} 
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 text-right font-mono" 
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">توصيف المشكلة والقطع المستبدلة</label>
+                                <textarea rows="2" value={problem} onChange={e => setProblem(e.target.value)} placeholder="مثال: تبديل شاشة مكسورة — الزبون يشتكي من حرارة في البطارية" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 resize-none" />
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition-all shadow-md">حفظ واستلام</button>
+                                <button type="button" onClick={() => setShowAddForm(false)} class="px-6 py-2.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-250 font-bold rounded-xl text-xs transition-all">إلغاء</button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* Jobs Table List */}
+                    <div class="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl">
+                        <div class="mb-4 relative">
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="ابحث باسم الزبون، هاتف، موديل الجهاز، أو IMEI..."
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500"
+                            />
+                            <Icon name="search" className="w-4 h-4 text-slate-500 absolute right-3.5 top-3.5" />
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                                        <th class="py-3 px-4">تاريخ الاستلام</th>
+                                        <th class="py-3 px-4">اسم الزبون</th>
+                                        <th class="py-3 px-4">رقم الهاتف</th>
+                                        <th class="py-3 px-4">الجهاز</th>
+                                        <th class="py-3 px-4">المشكلة / العطل</th>
+                                        <th class="py-3 px-4 text-left">التكلفة</th>
+                                        <th class="py-3 px-4 text-center">الحالة</th>
+                                        <th class="py-3 px-4 text-center">خيارات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredJobs.map(job => (
+                                        <tr key={job.id} class="border-b border-slate-850 hover:bg-slate-950/20 text-slate-200">
+                                            <td class="py-4 px-4 text-xs font-mono text-slate-500">{new Date(job.created_at).toLocaleDateString('ar-EG')}</td>
+                                            <td class="py-4 px-4 font-bold">{job.customer_name}</td>
+                                            <td class="py-4 px-4 font-mono text-xs">{job.customer_phone || '-'}</td>
+                                            <td class="py-4 px-4">
+                                                <div>{job.device_model}</div>
+                                                {job.imei && <span class="text-[10px] text-slate-500 font-mono block">IMEI: {job.imei}</span>}
+                                            </td>
+                                            <td class="py-4 px-4 text-xs max-w-[200px] truncate" title={job.problem_description}>{job.problem_description || '-'}</td>
+                                            <td class="py-4 px-4 text-left font-mono font-bold text-emerald-400">{parseFloat(job.cost).toLocaleString()} د.ع</td>
+                                            <td class="py-4 px-4 text-center">
+                                                <span class={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(job.status)}`}>
+                                                    {getStatusText(job.status)}
+                                                </span>
+                                            </td>
+                                            <td class="py-4 px-4 text-center">
+                                                {job.status !== 'Delivered' ? (
+                                                    <button 
+                                                        onClick={() => handleUpdateStatus(job.id, job.status, job.cost)}
+                                                        class={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all ${
+                                                            job.status === 'Under Inspection' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                                                        }`}
+                                                    >
+                                                        {job.status === 'Under Inspection' ? 'جاهز للتسليم' : 'تسليم للزبون ولقبض'}
+                                                    </button>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setReceipt({
+                                                                id: job.id,
+                                                                type: 'maintenance',
+                                                                date: new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                                                customer: job.customer_name,
+                                                                customerPhone: job.customer_phone,
+                                                                paymentMethod: 'Cash',
+                                                                items: [{
+                                                                    brand: 'صيانة جهاز',
+                                                                    name: job.device_model,
+                                                                    imei: job.imei,
+                                                                    price: job.cost
+                                                                }],
+                                                                total: job.cost,
+                                                                maintenanceNote: job.problem_description,
+                                                                warrantyDays: job.warranty_days
+                                                            });
+                                                        }}
+                                                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold rounded-lg text-xs flex items-center gap-1.5 mx-auto"
+                                                    >
+                                                        <Icon name="printer" className="w-3.5 h-3.5" /> طباعة الوصل
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredJobs.length === 0 && (
+                                        <tr>
+                                            <td colspan="8" class="py-12 text-center text-slate-500 text-sm">لا توجد أجهزة صيانة مطابقة للبحث أو الفلتر.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Receipt Modal */}
+                    {receipt && (() => {
+                        const s = getShopSettings();
+                        const shopName = s.shopName || 'متجر الموبايل';
+                        const currency = s.currency || 'د.ع';
+                        const phone = s.phone || '';
+                        const email = s.email || '';
+                        const address = s.address || '';
+                        const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
+                        const invoiceNum = 'INV-' + receipt.id;
+                        
+                        return (
+                        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
+                            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                <div id="print-receipt">
+                                    <div class="mnt">
+                                        {/* Head: Title + Logo */}
+                                        <div class="mnt-head">
+                                            <div>
+                                                <div class="mnt-head-title">وصل صيانة وأمانة</div>
+                                                <div class="mnt-head-sub">Maintenance & Service Receipt</div>
+                                            </div>
+                                            <div class="mnt-head-logo">صيانة</div>
+                                        </div>
+
+                                        {/* Company block */}
+                                        <div class="mnt-company">
+                                            <span class="mnt-company-name">{shopName}</span>
+                                            {phone && <span>هاتف: {phone}&nbsp;&nbsp;</span>}
+                                            {email && <span>بريد: {email}</span>}
+                                            {address && <div>العنوان: {address}</div>}
+                                        </div>
+
+                                        {/* 2-Column Info Box */}
+                                        <div class="mnt-info">
+                                            <div class="mnt-info-box">
+                                                <div class="mnt-info-box-title">معلومات الزبون</div>
+                                                <div class="mnt-info-row"><span class="mnt-info-key">الاسم:</span><span class="mnt-info-val">{receipt.customer}</span></div>
+                                                {receipt.customerPhone && <div class="mnt-info-row"><span class="mnt-info-key">الهاتف:</span><span class="mnt-info-val">{receipt.customerPhone}</span></div>}
+                                                <div class="mnt-info-row"><span class="mnt-info-key">طريقة الدفع:</span><span class="mnt-info-val">نقدي</span></div>
+                                            </div>
+                                            <div class="mnt-info-box">
+                                                <div class="mnt-info-box-title">تفاصيل الوصل</div>
+                                                <div class="mnt-info-row"><span class="mnt-info-key">رقم الوصل:</span><span class="mnt-info-val">{invoiceNum}</span></div>
+                                                <div class="mnt-info-row"><span class="mnt-info-key">التاريخ:</span><span class="mnt-info-val">{receipt.date}</span></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Description of Service */}
+                                        <div class="mnt-section-title">الأجهزة والخدمات المنجزة</div>
+                                        <table class="mnt-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>اسم الجهاز / المنتج</th>
+                                                    <th class="th-r">التكلفة</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {receipt.items.map((item, i) => (
+                                                    <tr key={i}>
+                                                        <td>
+                                                            <strong>{item.brand} — {item.name}</strong>
+                                                            {item.imei && <span style={{display:'block', fontSize:'11px', color:'#777'}}>IMEI: {item.imei}</span>}
+                                                        </td>
+                                                        <td class="td-r">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Maintenance details note */}
+                                        {receipt.maintenanceNote && (
+                                            <div class="mnt-note-box">
+                                                <div class="mnt-note-label">تقرير الفحص والصيانة:</div>
+                                                <div class="mnt-note-text">{receipt.maintenanceNote}</div>
+                                            </div>
+                                        )}
+
+                                        {/* Warranty block */}
+                                        {receipt.warrantyDays && parseInt(receipt.warrantyDays) > 0 && (
+                                            <div class="mnt-warranty">
+                                                <span class="mnt-warranty-icon">🛡️</span>
+                                                <div>
+                                                    <div class="mnt-warranty-title">الضمان والكفالة</div>
+                                                    <div class="mnt-warranty-text">هذا الجهاز مكفول لمدة {receipt.warrantyDays} يوم من تاريخ استلامه على القطع المستبدلة فقط. الكفالة لا تشمل سوء الاستخدام أو الكسر أو السوائل.</div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Totals */}
+                                        <div class="mnt-total">
+                                            <div class="mnt-total-box">
+                                                <span class="mnt-total-label">المجموع الكلي:</span>
+                                                <span class="mnt-total-amount">{receipt.total.toLocaleString()} {currency}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Signature lines */}
+                                        <div class="mnt-sign">
+                                            <div class="mnt-sign-block">
+                                                <div class="mnt-sign-line"></div>
+                                                <div class="mnt-sign-label">توقيع الزبون</div>
+                                            </div>
+                                            <div class="mnt-sign-block">
+                                                <div class="mnt-sign-line"></div>
+                                                <div class="mnt-sign-label">توقيع الفني / المستلم</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl no-print">
+                                    <button onClick={() => setReceipt(null)} class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-100 transition-all">
+                                        إغلاق
+                                    </button>
+                                    <button onClick={printReceipt} class="flex-1 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                                        <Icon name="printer" className="w-4 h-4" /> طباعة الفاتورة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        );
+                    })()}
                 </div>
             );
         }
