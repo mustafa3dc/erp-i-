@@ -26,7 +26,7 @@ def search_inventory(query_text):
         ).outerjoin(
             models.InventoryItem,
             (models.Product.id == models.InventoryItem.product_id) & 
-            (func.upper(models.InventoryItem.status) == 'AVAILABLE')
+            (models.InventoryItem.status == models.InventoryStatus.AVAILABLE)
         ).filter(
             models.Product.name.ilike(search_pattern) | 
             models.Product.brand.ilike(search_pattern)
@@ -56,7 +56,7 @@ def get_all_inventory():
         ).outerjoin(
             models.InventoryItem,
             (models.Product.id == models.InventoryItem.product_id) & 
-            (func.upper(models.InventoryItem.status) == 'AVAILABLE')
+            (models.InventoryItem.status == models.InventoryStatus.AVAILABLE)
         ).group_by(
             models.Product.id,
             models.Product.brand,
