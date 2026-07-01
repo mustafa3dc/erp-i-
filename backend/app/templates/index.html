@@ -1028,7 +1028,7 @@
             
             const filteredProducts = products.filter(p => {
                 if (p.type === 'Maintenance') return false;
-                const isAvailable = p.type !== 'Phone' || p.items.some(i => i.status === 'Available');
+                const isAvailable = p.items.some(i => i.status === 'Available');
                 if (!isAvailable) return false;
                 
                 // Search query match
