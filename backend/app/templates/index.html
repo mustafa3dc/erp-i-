@@ -543,6 +543,7 @@
             const [sales, setSales] = useState([]);
             const [maintenanceJobs, setMaintenanceJobs] = useState([]);
             const [loading, setLoading] = useState(false);
+            const [globalReceipt, setGlobalReceipt] = useState(null);
 
             const [isLocked, setIsLocked] = useState(() => {
                 return sessionStorage.getItem('isUnlocked') !== 'true';
@@ -802,8 +803,8 @@
 
                         {/* Page Body */}
                         <div class="flex-1 overflow-y-auto p-8">
-                            {currentTab === 'dashboard' && <DashboardPage accounts={accounts} entries={journalEntries} sales={sales} products={products} />}
-                            {currentTab === 'pos' && <POSPage products={products} sales={sales} refresh={fetchData} />}
+                            {currentTab === 'dashboard' && <DashboardPage accounts={accounts} entries={journalEntries} sales={sales} products={products} setActiveReceiptToPrint={setGlobalReceipt} setCurrentTab={setCurrentTab} />}
+                            {currentTab === 'pos' && <POSPage products={products} sales={sales} refresh={fetchData} activeReceiptToPrint={globalReceipt} setActiveReceiptToPrint={setGlobalReceipt} />}
                             {currentTab === 'maintenance_jobs' && <MaintenanceJobsPage jobs={maintenanceJobs} products={products} refresh={fetchData} />}
                             {currentTab === 'inventory' && <InventoryPage products={products} refresh={fetchData} />}
                             {currentTab === 'advanced' && <AdvancedAccountingPage accounts={accounts} entries={journalEntries} refresh={fetchData} />}
@@ -822,7 +823,8 @@
         }
 
         // Dashboard Component
-        function DashboardPage({ accounts, entries, sales, products }) {
+        function DashboardPage({ accounts, entries, sales, products, setActiveReceiptToPrint, setCurrentTab }) {
+            const [salesSearchQuery, setSalesSearchQuery] = useState('');
             const calculateTotals = () => {
                 let assets = 0, liabilities = 0, equity = 0, revenue = 0, expenses = 0;
                 let cashInBox = 0;
@@ -973,35 +975,74 @@
                             </div>
                         </div>
 
-                        {/* Recent Bills */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg h-[400px]">
-                            <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
-                                <Icon name="receipt" className="w-4 h-4 text-emerald-400" />
-                                آخر فواتير المبيعات
-                            </h3>
-                            <div class="space-y-3 overflow-y-auto max-h-[290px] pr-1">
-                                {sales.slice(-5).reverse().map(sale => (
-                                    <div key={sale.id} class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-850 rounded-2xl flex justify-between items-center transition-all">
-                                        <div>
-                                            <div class="font-bold text-sm text-slate-200">فاتورة بيع لـ: {sale.customer_name || 'زبون نقدي'}</div>
-                                            <div class="text-[11px] text-slate-500 mt-1 font-mono">{new Date(sale.sale_date).toLocaleDateString('en-GB')}</div>
+                        {/* Sales Invoices History */}
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg h-[400px] flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-base text-emerald-400 flex items-center gap-2">
+                                        <Icon name="receipt" className="w-4 h-4 text-emerald-400" />
+                                        سجل فواتير المبيعات
+                                    </h3>
+                                    <input 
+                                        type="text"
+                                        placeholder="بحث بالفواتير..."
+                                        value={salesSearchQuery}
+                                        onChange={e => setSalesSearchQuery(e.target.value)}
+                                        class="w-36 bg-slate-950/80 border border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none transition-all"
+                                    />
+                                </div>
+                                <div class="space-y-3 overflow-y-auto max-h-[290px] pr-1">
+                                    {sales.filter(sale => 
+                                        (sale.customer_name || '').toLowerCase().includes(salesSearchQuery.toLowerCase()) ||
+                                        ('INV-' + getShortId(sale.id)).toLowerCase().includes(salesSearchQuery.toLowerCase())
+                                    ).slice().reverse().map(sale => (
+                                        <div 
+                                            key={sale.id} 
+                                            onClick={() => {
+                                                const formattedItems = (sale.items || []).map(si => ({
+                                                    brand: si.product?.brand || '',
+                                                    name: si.product?.name || '',
+                                                    price: si.price,
+                                                    imei: si.inventory_item?.imei || '',
+                                                    battery_health: si.inventory_item?.battery_health || null
+                                                }));
+                                                setActiveReceiptToPrint({
+                                                    id: sale.id,
+                                                    type: (sale.items || []).every(si => si.product?.type === 'Maintenance') ? 'maintenance' : 'sale',
+                                                    date: new Date(sale.sale_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                                                    customer: sale.customer_name || "زبون نقدي",
+                                                    customerPhone: sale.customer_phone || "",
+                                                    paymentMethod: sale.payment_method,
+                                                    items: formattedItems,
+                                                    total: sale.total_amount,
+                                                    maintenanceNote: sale.maintenance_note || '',
+                                                    warrantyDays: sale.warranty_days || '30'
+                                                });
+                                                setCurrentTab('pos');
+                                            }}
+                                            class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-850 hover:border-slate-700 rounded-2xl flex justify-between items-center cursor-pointer transition-all hover:-translate-y-[1px]"
+                                        >
+                                            <div>
+                                                <div class="font-bold text-sm text-slate-250">INV-{getShortId(sale.id)} - {sale.customer_name || 'زبون نقدي'}</div>
+                                                <div class="text-[10px] text-slate-500 mt-1 font-mono">{new Date(sale.sale_date).toLocaleDateString('en-GB')}</div>
+                                            </div>
+                                            <div class="text-left flex flex-col items-end gap-1">
+                                                <span class={`px-2 py-0.5 rounded text-[9px] font-bold border ${
+                                                    sale.payment_method === 'Cash' 
+                                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
+                                                    : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
+                                                }`}>{sale.payment_method === 'Cash' ? 'نقداً' : 'آجل'}</span>
+                                                <div class="text-xs font-bold text-emerald-400 font-mono">{parseFloat(sale.total_amount).toLocaleString()} {currency}</div>
+                                            </div>
                                         </div>
-                                        <div class="text-left flex flex-col items-end gap-1.5">
-                                            <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                                sale.payment_method === 'Cash' 
-                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
-                                                : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
-                                            }`}>{sale.payment_method === 'Cash' ? 'نقداً' : 'آجل'}</span>
-                                            <div class="text-xs font-bold text-emerald-400 font-mono">{parseFloat(sale.total_amount).toLocaleString()} {currency}</div>
+                                    ))}
+                                    {sales.length === 0 && (
+                                        <div class="text-center text-slate-500 py-12 flex flex-col items-center justify-center gap-2">
+                                            <Icon name="inbox" className="w-8 h-8 text-slate-700" />
+                                            <span class="text-sm">لم يتم إجراء أي عملية بيع بعد.</span>
                                         </div>
-                                    </div>
-                                ))}
-                                {sales.length === 0 && (
-                                    <div class="text-center text-slate-500 py-12 flex flex-col items-center justify-center gap-2">
-                                        <Icon name="inbox" className="w-8 h-8 text-slate-700" />
-                                        <span class="text-sm">لم يتم إجراء أي عملية بيع بعد.</span>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1010,7 +1051,7 @@
         }
 
         // POS Component
-        function POSPage({ products, sales, refresh }) {
+        function POSPage({ products, sales, refresh, activeReceiptToPrint, setActiveReceiptToPrint }) {
             const [customerName, setCustomerName] = useState('');
             const [paymentMethod, setPaymentMethod] = useState('Cash');
             const [cart, setCart] = useState([]);
@@ -1021,6 +1062,13 @@
             const [customerPhone, setCustomerPhone] = useState('');
             const [searchQuery, setSearchQuery] = useState('');
             const [posFilter, setPosFilter] = useState('All');
+
+            React.useEffect(() => {
+                if (activeReceiptToPrint) {
+                    setReceipt(activeReceiptToPrint);
+                    setActiveReceiptToPrint(null); // Clear it so it doesn't loop
+                }
+            }, [activeReceiptToPrint]);
 
             const printReceipt = () => {
                 window.print();
@@ -1333,7 +1381,7 @@
 
                         {/* Category filter tabs */}
                         <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar">
-                            {['All', 'Phone', 'Accessory', 'History'].map(cat => (
+                            {['All', 'Phone', 'Accessory'].map(cat => (
                                 <button 
                                     key={cat}
                                     onClick={() => setPosFilter(cat)}
@@ -1346,100 +1394,46 @@
                                     {cat === 'All' && 'الكل'}
                                     {cat === 'Phone' && 'هواتف'}
                                     {cat === 'Accessory' && 'إكسسوارات'}
-                                    {cat === 'History' && 'الفواتير القديمة'}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Products list or Past Invoices list container */}
-                        {posFilter === 'History' ? (
-                            <div class="space-y-2.5 overflow-y-auto max-h-[380px] pr-1">
-                                {sales.filter(sale => 
-                                    (sale.customer_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                    ('INV-' + getShortId(sale.id)).toLowerCase().includes(searchQuery.toLowerCase())
-                                ).slice().reverse().map(sale => (
+                        {/* Products list container */}
+                        <div class="space-y-2.5 overflow-y-auto max-h-[380px] pr-1">
+                            {filteredProducts.map(p => {
+                                const available = p.items.filter(i => i.status === 'Available');
+                                return (
                                     <div 
-                                        key={sale.id} 
-                                        onClick={() => {
-                                            const formattedItems = (sale.items || []).map(si => ({
-                                                brand: si.product?.brand || '',
-                                                name: si.product?.name || '',
-                                                price: si.price,
-                                                imei: si.inventory_item?.imei || '',
-                                                battery_health: si.inventory_item?.battery_health || null
-                                            }));
-                                            setReceipt({
-                                                id: sale.id,
-                                                type: (sale.items || []).every(si => si.product?.type === 'Maintenance') ? 'maintenance' : 'sale',
-                                                date: new Date(sale.sale_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                                                customer: sale.customer_name || "زبون نقدي",
-                                                customerPhone: sale.customer_phone || "",
-                                                paymentMethod: sale.payment_method,
-                                                items: formattedItems,
-                                                total: sale.total_amount,
-                                                maintenanceNote: sale.maintenance_note || '',
-                                                warrantyDays: sale.warranty_days || '30'
-                                            });
-                                        }}
+                                        key={p.id} 
+                                        onClick={() => addToCart(p)}
                                         class="p-4 bg-slate-950/70 hover:bg-slate-800 border border-slate-850/80 hover:border-slate-700 rounded-2xl flex justify-between items-center cursor-pointer transition-all hover:-translate-y-[1px]"
                                     >
                                         <div class="flex-1 pr-2">
-                                            <div class="font-bold text-sm text-slate-200">INV-{getShortId(sale.id)} - {sale.customer_name || 'زبون نقدي'}</div>
-                                            <div class="text-[10px] text-slate-500 mt-1 font-mono">
-                                                {new Date(sale.sale_date).toLocaleDateString('en-GB')}&nbsp;&nbsp;|&nbsp;&nbsp;
-                                                {(sale.items || []).length} { (sale.items || []).length === 1 ? 'مادة' : 'مواد' }
-                                            </div>
+                                            <div class="font-bold text-sm text-slate-200">{p.brand} - {p.name}</div>
+                                            <div class="text-xs text-emerald-400 mt-1 font-mono font-bold">{parseFloat(p.selling_price).toLocaleString()} د.ع</div>
                                         </div>
-                                        <div class="text-left">
-                                            <div class="text-xs font-bold text-emerald-400 font-mono">{parseFloat(sale.total_amount).toLocaleString()} د.ع</div>
-                                            <span class="text-[9px] text-slate-500 mt-1 block">اضغط للعرض 🖨️</span>
+                                        <div class="text-left text-xs">
+                                            {p.type === 'Maintenance' ? (
+                                                <span class="px-2.5 py-1 rounded-full font-bold border bg-amber-500/10 text-amber-400 border-amber-500/10">
+                                                    صيانة / خدمة
+                                                </span>
+                                            ) : (
+                                                <span class={`px-2.5 py-1 rounded-full font-bold border ${
+                                                    available.length > 0 
+                                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
+                                                    : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
+                                                }`}>
+                                                    المتوفر: {available.length}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
-                                {sales.filter(sale => 
-                                    (sale.customer_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                    ('INV-' + getShortId(sale.id)).toLowerCase().includes(searchQuery.toLowerCase())
-                                ).length === 0 && (
-                                    <div class="text-center py-12 text-slate-500">لا توجد فواتير مطابقة للبحث.</div>
-                                )}
-                            </div>
-                        ) : (
-                            <div class="space-y-2.5 overflow-y-auto max-h-[380px] pr-1">
-                                {filteredProducts.map(p => {
-                                    const available = p.items.filter(i => i.status === 'Available');
-                                    return (
-                                        <div 
-                                            key={p.id} 
-                                            onClick={() => addToCart(p)}
-                                            class="p-4 bg-slate-950/70 hover:bg-slate-800 border border-slate-850/80 hover:border-slate-700 rounded-2xl flex justify-between items-center cursor-pointer transition-all hover:-translate-y-[1px]"
-                                        >
-                                            <div class="flex-1 pr-2">
-                                                <div class="font-bold text-sm text-slate-200">{p.brand} - {p.name}</div>
-                                                <div class="text-xs text-emerald-400 mt-1 font-mono font-bold">{parseFloat(p.selling_price).toLocaleString()} د.ع</div>
-                                            </div>
-                                            <div class="text-left text-xs">
-                                                {p.type === 'Maintenance' ? (
-                                                    <span class="px-2.5 py-1 rounded-full font-bold border bg-amber-500/10 text-amber-400 border-amber-500/10">
-                                                        صيانة / خدمة
-                                                    </span>
-                                                ) : (
-                                                    <span class={`px-2.5 py-1 rounded-full font-bold border ${
-                                                        available.length > 0 
-                                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
-                                                        : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
-                                                    }`}>
-                                                        المتوفر: {available.length}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                {filteredProducts.length === 0 && (
-                                    <div class="text-center py-12 text-slate-500">لا توجد منتجات مطابقة للبحث.</div>
-                                )}
-                            </div>
-                        )}
+                                );
+                            })}
+                            {filteredProducts.length === 0 && (
+                                <div class="text-center py-12 text-slate-500">لا توجد منتجات مطابقة للبحث.</div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Receipt Modal */}
