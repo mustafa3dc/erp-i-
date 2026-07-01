@@ -915,7 +915,7 @@
                     {/* Secondary Row Details */}
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Warehouse Status */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[300px]">
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[400px]">
                             <div>
                                 <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
                                     <Icon name="package" className="w-4 h-4 text-emerald-400" />
@@ -937,13 +937,13 @@
                         </div>
 
                         {/* Low Stock Alerts */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[300px]">
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg flex flex-col justify-between h-[400px]">
                             <div>
                                 <h3 class="font-bold text-base mb-4 text-rose-400 flex items-center gap-2">
                                     <Icon name="alert-triangle" className="w-4 h-4 text-rose-400" />
                                     بضائع توشك على النفاد (الكمية 2 أو أقل)
                                 </h3>
-                                <div class="space-y-2.5 overflow-y-auto max-h-[190px] pr-1">
+                                <div class="space-y-2.5 overflow-y-auto max-h-[290px] pr-1">
                                     {products.filter(p => p.type !== 'Maintenance').map(p => {
                                         const availableCount = p.items.filter(i => i.status === 'Available').length;
                                         return { product: p, count: availableCount };
@@ -974,12 +974,12 @@
                         </div>
 
                         {/* Recent Bills */}
-                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg h-[300px]">
+                        <div class="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl shadow-lg h-[400px]">
                             <h3 class="font-bold text-base mb-5 text-emerald-400 flex items-center gap-2">
                                 <Icon name="receipt" className="w-4 h-4 text-emerald-400" />
                                 آخر فواتير المبيعات
                             </h3>
-                            <div class="space-y-3 overflow-y-auto max-h-[300px] pr-1">
+                            <div class="space-y-3 overflow-y-auto max-h-[290px] pr-1">
                                 {sales.slice(-5).reverse().map(sale => (
                                     <div key={sale.id} class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-850 rounded-2xl flex justify-between items-center transition-all">
                                         <div>
