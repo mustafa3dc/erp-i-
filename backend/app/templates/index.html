@@ -1410,8 +1410,17 @@
             const [batteryHealth, setBatteryHealth] = useState('');
             const [showSoldItems, setShowSoldItems] = useState(false);
 
-            const PHONE_BRANDS = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo", "أخرى"];
-            const ACCESSORY_BRANDS = ["Anker", "Joyroom", "LDNIO", "Baseus", "Remax", "Yesido", "Hoco", "Oraimo", "Apple", "Samsung", "Xiaomi", "Green Lion", "McDodo", "Awei", "G-Tab", "Pavareal", "أخرى"];
+            const defaultPhoneBrands = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo"];
+            const defaultAccessoryBrands = ["Anker", "Joyroom", "LDNIO", "Baseus", "Remax", "Yesido", "Hoco", "Oraimo", "Apple", "Samsung", "Xiaomi", "Green Lion", "McDodo", "Awei", "G-Tab", "Pavareal"];
+
+            const existingPhoneBrands = products.filter(p => p.type === 'Phone' || p.type === 'Maintenance').map(p => p.brand);
+            const existingAccessoryBrands = products.filter(p => p.type === 'Accessory').map(p => p.brand);
+
+            const PHONE_BRANDS = [...new Set([...defaultPhoneBrands, ...existingPhoneBrands])].filter(b => b && b !== 'أخرى');
+            PHONE_BRANDS.push('أخرى');
+
+            const ACCESSORY_BRANDS = [...new Set([...defaultAccessoryBrands, ...existingAccessoryBrands])].filter(b => b && b !== 'أخرى');
+            ACCESSORY_BRANDS.push('أخرى');
 
             // Sync product type state and default brand with the active category tab
             useEffect(() => {
