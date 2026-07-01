@@ -260,20 +260,21 @@
             if (isLocked) {
                 const s = getShopSettings();
                 const shopName = s.shopName || 'متجر الموبايل';
+                const correctPassword = s.systemPassword || '123456';
+                const pinLength = correctPassword.length;
                 
                 // Auto unlock when PIN matches correct settings code
                 const handlePinClick = (num) => {
                     setLoginError('');
-                    if (passwordInput.length < 6) {
+                    if (passwordInput.length < pinLength) {
                         const newPin = passwordInput + num;
                         setPasswordInput(newPin);
                         
-                        const correctPassword = s.systemPassword || '123456';
                         if (newPin === correctPassword) {
                             sessionStorage.setItem('isUnlocked', 'true');
                             setIsLocked(false);
                             setPasswordInput('');
-                        } else if (newPin.length === 6) {
+                        } else if (newPin.length === pinLength) {
                             setTimeout(() => {
                                 setLoginError('الرمز السري غير صحيح!');
                                 setPasswordInput('');
@@ -304,7 +305,7 @@
 
                             {/* Dots Indicator */}
                             <div class="flex justify-center items-center gap-4 py-2">
-                                {[0, 1, 2, 3, 4, 5].map(idx => (
+                                {Array.from({ length: pinLength }).map((_, idx) => (
                                     <div 
                                         key={idx}
                                         class={`w-4.5 h-4.5 rounded-full border-2 transition-all duration-150 ${
