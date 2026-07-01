@@ -2,8 +2,15 @@ import os
 import sys
 import time
 import requests
-from database import SessionLocal
-import models
+
+# Add the parent directory to sys.path to allow absolute imports of the 'app' package
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+from app.database import SessionLocal
+from app import models
 from sqlalchemy import func
 
 def search_inventory(query_text):
