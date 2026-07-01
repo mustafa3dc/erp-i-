@@ -12,14 +12,31 @@
             theme: {
                 extend: {
                     colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            850: '#161d30', // soft card background
+                            900: '#0f1424', // soft panel background
+                            950: '#080b15', // soft main background
+                        },
+                        emerald: {
+                            400: '#10b981', // soft primary green
+                            500: '#059669',
+                            600: '#047857',
+                        },
                         brand: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            900: '#064e3b',
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1', // Indigo accent
+                            600: '#4f46e5',
+                            700: '#4338ca',
                         }
                     }
                 }
@@ -226,35 +243,35 @@
                             <nav class="p-4 space-y-2">
                                 <button 
                                     onClick={() => setCurrentTab('dashboard')}
-                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'dashboard' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
                                     <Icon name="bar-chart-3" className="w-5 h-5" />
                                     <span>لوحة التحكم (الملخص)</span>
                                 </button>
                                 <button 
                                     onClick={() => setCurrentTab('pos')}
-                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'pos' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'pos' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
                                     <Icon name="shopping-cart" className="w-5 h-5" />
                                     <span>نقطة البيع (POS)</span>
                                 </button>
                                 <button 
                                     onClick={() => setCurrentTab('inventory')}
-                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'inventory' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'inventory' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
                                     <Icon name="package" className="w-5 h-5" />
                                     <span>إدارة المخزن</span>
                                 </button>
                                 <button 
                                     onClick={() => setCurrentTab('advanced')}
-                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'advanced' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'advanced' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
                                     <Icon name="book-open" className="w-5 h-5" />
                                     <span>الحسابات المتقدمة</span>
                                 </button>
                                 <button 
                                     onClick={() => setCurrentTab('settings')}
-                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'settings' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'settings' ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-slate-400 hover:bg-slate-850 hover:text-slate-100'}`}
                                 >
                                     <Icon name="settings" className="w-5 h-5" />
                                     <span>إعدادات المتجر</span>
