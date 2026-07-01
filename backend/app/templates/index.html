@@ -524,7 +524,7 @@
                         <div class="flex-1 overflow-y-auto p-8">
                             {currentTab === 'dashboard' && <DashboardPage accounts={accounts} entries={journalEntries} sales={sales} products={products} />}
                             {currentTab === 'pos' && <POSPage products={products} sales={sales} refresh={fetchData} />}
-                            {currentTab === 'maintenance_jobs' && <MaintenanceJobsPage jobs={maintenanceJobs} refresh={fetchData} />}
+                            {currentTab === 'maintenance_jobs' && <MaintenanceJobsPage jobs={maintenanceJobs} products={products} refresh={fetchData} />}
                             {currentTab === 'inventory' && <InventoryPage products={products} refresh={fetchData} />}
                             {currentTab === 'advanced' && <AdvancedAccountingPage accounts={accounts} entries={journalEntries} refresh={fetchData} />}
                             {currentTab === 'settings' && <ShopSettingsPage />}
@@ -1804,7 +1804,7 @@
         }
 
         // Maintenance Jobs tracker page
-        function MaintenanceJobsPage({ jobs, refresh }) {
+        function MaintenanceJobsPage({ jobs, products = [], refresh }) {
             const [customerName, setCustomerName] = useState('');
             const [customerPhone, setCustomerPhone] = useState('');
             const [deviceModel, setDeviceModel] = useState('');
@@ -1922,6 +1922,13 @@
                 }
             };
 
+            const typedModel = deviceModel.trim().toLowerCase();
+            const matchingParts = typedModel.length >= 2 ? products.filter(p => {
+                if (p.type !== 'Maintenance') return false;
+                const availableItems = p.items.filter(i => i.status === 'Available');
+                return p.name.toLowerCase().includes(typedModel) && availableItems.length > 0;
+            }) : [];
+
             return (
                 <div class="space-y-6">
                     {/* Header Controls */}
@@ -1982,6 +1989,26 @@
                                     <input type="text" value={imei} onChange={e => setImei(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500" />
                                 </div>
                             </div>
+
+                            {/* Spares indicator */}
+                            {matchingParts.length > 0 && (
+                                <div class="p-3.5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl space-y-1">
+                                    <div class="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                                        <Icon name="check-circle" className="w-4 h-4 text-emerald-500" />
+                                        <span>قطع غيار صيانة متوفرة في المخزن لهذا الجهاز:</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 mt-1.5">
+                                        {matchingParts.map(p => {
+                                            const qty = p.items.filter(i => i.status === 'Available').length;
+                                            return (
+                                                <span key={p.id} class="px-2.5 py-1 bg-slate-950 border border-slate-850 text-[10px] text-slate-300 font-bold rounded-lg flex items-center gap-1">
+                                                    🛠️ {p.brand} - {p.name} (المتوفر: {qty} قطع)
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs text-slate-400 mb-1">تكلفة الصيانة المقدرة (د.ع)</label>
@@ -2075,6 +2102,23 @@
                                             <td class="py-3 px-4">
                                                 <div class="font-bold text-slate-200">{job.device_model}</div>
                                                 {job.imei && <span class="text-[10px] text-slate-500 font-mono block mt-0.5">IMEI: {job.imei}</span>}
+                                                {(() => {
+                                                    const cleanJobModel = job.device_model.trim().toLowerCase();
+                                                    const partsInStock = cleanJobModel.length >= 2 ? products.filter(p => 
+                                                        p.type === 'Maintenance' && 
+                                                        p.name.toLowerCase().includes(cleanJobModel) && 
+                                                        p.items.some(i => i.status === 'Available')
+                                                    ) : [];
+                                                    
+                                                    if (partsInStock.length > 0 && job.status !== 'Delivered') {
+                                                        return (
+                                                            <span class="text-[10px] text-emerald-500 font-bold flex items-center gap-1 mt-1">
+                                                                ✓ متوفر {partsInStock.length} قطع غيار بالمخزن
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </td>
 
                                             {/* Problem Description */}
