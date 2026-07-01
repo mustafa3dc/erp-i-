@@ -55,107 +55,252 @@
 
         /* CLEAN INVOICE */
         #print-receipt { background: #fff; }
-        .inv {
+        /* CLEAN INVOICE - MODERN MINIMALIST */
+        #print-receipt { background: #fff; }
+        .inv, .mnt {
             font-family: 'Outfit', 'Tajawal', sans-serif;
             background: #fff;
-            color: #111;
-            padding: 48px 56px;
-            max-width: 800px;
+            color: #0f172a;
+            padding: 40px 48px;
+            max-width: 750px;
             margin: 0 auto;
-            direction: ltr;
         }
-        .inv-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-        .inv-head-title { font-size: 54px; font-weight: 900; color: #1b2354; letter-spacing: 2px; line-height: 1; text-transform: uppercase; }
-        .inv-head-logo { width: 86px; height: 86px; border-radius: 50%; background: #bbb; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 1px; flex-shrink: 0; }
-        .inv-company { margin-bottom: 28px; font-size: 13px; color: #333; line-height: 1.7; }
-        .inv-company-name { font-weight: 800; font-size: 15px; color: #1b2354; display: block; margin-bottom: 2px; }
-        .inv-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 24px; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 20px 0; margin-bottom: 32px; }
+        .inv { direction: ltr; }
+        .mnt { direction: rtl; }
+
+        /* Headings */
+        .inv-head, .mnt-head { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
+            border-bottom: 1px solid #e2e8f0; 
+            padding-bottom: 20px; 
+        }
+        .inv-head-title, .mnt-head-title { 
+            font-size: 24px; 
+            font-weight: 800; 
+            color: #0f172a; 
+            letter-spacing: 0.5px; 
+        }
+        .inv-head-sub, .mnt-head-sub { 
+            font-size: 11px; 
+            color: #64748b; 
+            margin-top: 4px; 
+        }
+        .inv-head-logo, .mnt-head-logo { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #475569; 
+            background: #f1f5f9; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0; 
+        }
+
+        /* Company Details */
+        .inv-company, .mnt-company { 
+            margin-bottom: 24px; 
+            font-size: 12px; 
+            color: #475569; 
+            line-height: 1.6; 
+        }
+        .inv-company-name, .mnt-company-name { 
+            font-weight: 800; 
+            font-size: 14px; 
+            color: #0f172a; 
+            display: block; 
+            margin-bottom: 4px; 
+        }
+
+        /* Info blocks */
+        .inv-info, .mnt-info { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 20px; 
+            border-top: 1px solid #e2e8f0; 
+            border-bottom: 1px solid #e2e8f0; 
+            padding: 16px 0; 
+            margin-bottom: 28px; 
+        }
+        .mnt-info {
+            grid-template-columns: 1fr 1fr;
+        }
+        .inv-info-block, .mnt-info-box {
+            font-size: 12px;
+        }
         .inv-info-block:last-child { text-align: right; }
-        .inv-info-label { font-size: 10px; font-weight: 800; color: #1b2354; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 2px solid #d63031; padding-bottom: 4px; margin-bottom: 10px; display: inline-block; }
-        .inv-info-val { font-size: 13px; color: #333; line-height: 1.8; }
-        .inv-info-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
-        .inv-info-row-key { font-weight: 700; color: #1b2354; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .inv-info-row-val { color: #555; }
-        .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .inv-table thead tr { border-bottom: 2px solid #d63031; }
-        .inv-table thead th { padding: 8px 10px 10px; font-size: 11px; font-weight: 800; color: #1b2354; text-transform: uppercase; letter-spacing: 1px; text-align: left; }
+        .inv-info-label, .mnt-info-box-title { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 6px; 
+            display: block; 
+        }
+        .inv-info-val, .mnt-info-val { 
+            font-size: 12px; 
+            color: #0f172a; 
+            font-weight: 650; 
+        }
+        .inv-info-row, .mnt-info-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 11px; 
+            margin-bottom: 4px; 
+            color: #475569;
+        }
+        .mnt-info-row {
+            flex-direction: row-reverse;
+        }
+        .inv-info-row-key, .mnt-info-key { font-weight: 700; color: #64748b; }
+        .inv-info-row-val, .mnt-info-val { color: #0f172a; }
+
+        /* Tables */
+        .inv-table, .mnt-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            margin-bottom: 24px; 
+        }
+        .inv-table thead tr, .mnt-table thead tr { 
+            border-bottom: 1px solid #0f172a; 
+        }
+        .inv-table thead th, .mnt-table thead th { 
+            padding: 10px 8px; 
+            font-size: 11px; 
+            font-weight: 850; 
+            color: #0f172a; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            text-align: left; 
+        }
+        .mnt-table thead th { text-align: right; }
         .inv-table thead th.th-desc { text-align: center; }
         .inv-table thead th.th-amt  { text-align: right; }
-        .inv-table tbody tr { border-bottom: 1px solid #efefef; }
-        .inv-table tbody td { padding: 12px 10px; vertical-align: top; color: #333; }
-        .inv-table tbody td.td-qty  { width: 40px; font-weight: 600; color: #1b2354; }
-        .inv-table tbody td.td-desc { text-align: center; }
-        .inv-table tbody td.td-up   { width: 130px; }
-        .inv-table tbody td.td-amt  { text-align: right; font-weight: 700; width: 130px; }
-        .inv-desc-name { font-weight: 600; color: #222; }
-        .inv-desc-sub  { font-size: 10px; color: #aaa; margin-top: 2px; font-family: monospace; }
-        .inv-totals { margin-top: 0; border-top: 1px solid #efefef; }
-        .inv-totals-row { display: flex; justify-content: flex-end; padding: 5px 10px; font-size: 13px; color: #555; }
-        .inv-totals-row > span:first-child { min-width: 150px; text-align: left; }
-        .inv-totals-row > span:last-child  { min-width: 130px; text-align: right; }
-        .inv-totals-grand { border-top: 2px solid #1b2354; margin-top: 6px; padding: 10px 10px 0; display: flex; justify-content: flex-end; }
-        .inv-totals-grand > span:first-child { min-width: 150px; text-align: left; font-size: 16px; font-weight: 900; color: #1b2354; text-transform: uppercase; letter-spacing: 1px; }
-        .inv-totals-grand > span:last-child  { min-width: 130px; text-align: right; font-size: 20px; font-weight: 900; color: #1b2354; }
-        .inv-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; }
-        .inv-foot-thanks { font-family: 'Dancing Script', cursive; font-size: 42px; font-weight: 700; color: #1b2354; line-height: 1; }
-        .inv-foot-terms { text-align: right; max-width: 260px; }
-        .inv-foot-terms-title { font-size: 10px; font-weight: 800; color: #d63031; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #d63031; padding-left: 8px; margin-bottom: 6px; }
-        .inv-foot-terms-text  { font-size: 11px; color: #777; line-height: 1.8; border-left: 3px solid #d63031; padding-left: 8px; }
-        .inv-foot-copyright   { font-size: 10px; color: #aaa; margin-top: 8px; padding-left: 11px; }
+        .mnt-table thead th.th-r { text-align: left; width: 120px; }
 
-        /* =========================================
-           MAINTENANCE RECEIPT
-        ========================================= */
-        .mnt {
-            font-family: 'Outfit', 'Tajawal', sans-serif;
-            background: #fff;
-            color: #111;
-            padding: 48px 56px;
-            max-width: 800px;
-            margin: 0 auto;
-            direction: rtl;
+        .inv-table tbody tr, .mnt-table tbody tr { 
+            border-bottom: 1px solid #f1f5f9; 
         }
-        .mnt-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 3px solid #f59e0b; padding-bottom: 20px; }
-        .mnt-head-title { font-size: 38px; font-weight: 900; color: #92400e; letter-spacing: 1px; line-height: 1.1; }
-        .mnt-head-sub { font-size: 12px; color: #b45309; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .mnt-head-logo { width: 80px; height: 80px; border-radius: 50%; background: #d97706; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
-        .mnt-company { margin-bottom: 24px; font-size: 13px; color: #555; line-height: 1.8; }
-        .mnt-company-name { font-weight: 800; font-size: 15px; color: #1b2354; display: block; }
-
-        .mnt-info { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .mnt-info-box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
-        .mnt-info-box-title { font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f59e0b; padding-bottom: 4px; margin-bottom: 10px; display: inline-block; }
-        .mnt-info-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-        .mnt-info-key { font-weight: 700; color: #444; }
-        .mnt-info-val { color: #666; }
-
-        .mnt-section-title { font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; border-right: 3px solid #f59e0b; padding-right: 8px; margin-bottom: 12px; }
-        .mnt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
-        .mnt-table thead tr { border-bottom: 2px solid #f59e0b; }
-        .mnt-table thead th { padding: 8px 10px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
-        .mnt-table thead th.th-r { text-align: left; width: 130px; }
-        .mnt-table tbody tr { border-bottom: 1px solid #f3f4f6; }
-        .mnt-table tbody td { padding: 12px 10px; vertical-align: top; color: #333; text-align: right; }
+        .inv-table tbody td, .mnt-table tbody td { 
+            padding: 12px 8px; 
+            vertical-align: top; 
+            color: #334155; 
+        }
+        .mnt-table tbody td { text-align: right; }
+        .inv-table tbody td.td-qty  { width: 45px; font-weight: 600; color: #0f172a; }
+        .inv-table tbody td.td-desc { text-align: center; }
+        .inv-table tbody td.td-up   { width: 120px; }
+        .inv-table tbody td.td-amt  { text-align: right; font-weight: 700; width: 120px; }
         .mnt-table tbody td.td-r { text-align: left; font-weight: 700; }
 
-        .mnt-note-box { border: 1px solid #fde68a; background: #fffbeb; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
-        .mnt-note-label { font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-        .mnt-note-text { font-size: 13px; color: #555; line-height: 1.7; }
+        .inv-desc-name { font-weight: 700; color: #0f172a; }
+        .inv-desc-sub  { font-size: 10px; color: #64748b; margin-top: 2px; font-family: monospace; }
 
-        .mnt-total { display: flex; justify-content: flex-end; margin-bottom: 24px; }
-        .mnt-total-box { border-top: 2px solid #1b2354; padding-top: 10px; display: flex; gap: 40px; }
-        .mnt-total-label { font-size: 16px; font-weight: 900; color: #1b2354; text-transform: uppercase; }
-        .mnt-total-amount { font-size: 20px; font-weight: 900; color: #1b2354; }
+        /* Notes box */
+        .mnt-note-box { 
+            border: 1px solid #e2e8f0; 
+            background: #f8fafc; 
+            border-radius: 8px; 
+            padding: 12px 14px; 
+            margin-bottom: 20px; 
+        }
+        .mnt-note-label { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            margin-bottom: 4px; 
+        }
+        .mnt-note-text { font-size: 12px; color: #334155; line-height: 1.6; }
 
-        .mnt-warranty { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-        .mnt-warranty-icon { font-size: 24px; }
-        .mnt-warranty-title { font-size: 12px; font-weight: 800; color: #065f46; }
-        .mnt-warranty-text { font-size: 11px; color: #047857; margin-top: 2px; }
+        /* Warranty */
+        .mnt-warranty { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            padding: 12px 14px; 
+            margin-bottom: 24px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+        .mnt-warranty-icon { font-size: 16px; }
+        .mnt-warranty-title { font-size: 11px; font-weight: 800; color: #0f172a; }
+        .mnt-warranty-text { font-size: 11px; color: #475569; margin-top: 2px; }
 
-        .mnt-sign { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+        /* Totals Block - Premium Slate Box */
+        .inv-totals, .mnt-total { 
+            display: flex; 
+            justify-content: flex-end; 
+            margin-top: 10px; 
+        }
+        .inv-totals-row { 
+            display: flex; 
+            justify-content: flex-end; 
+            padding: 6px 8px; 
+            font-size: 12px; 
+            color: #475569; 
+        }
+        .inv-totals-row > span:first-child { min-width: 140px; text-align: left; }
+        .inv-totals-row > span:last-child  { min-width: 120px; text-align: right; }
+
+        .inv-totals-grand, .mnt-total-box { 
+            background: #0f172a; 
+            color: #fff; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            min-width: 280px; 
+            margin-top: 8px; 
+        }
+        .mnt-total-box {
+            flex-direction: row-reverse;
+        }
+        .inv-totals-grand > span:first-child, .mnt-total-label { 
+            font-size: 12px; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+        }
+        .inv-totals-grand > span:last-child, .mnt-total-amount { 
+            font-size: 16px; 
+            font-weight: 800; 
+        }
+
+        /* Footer */
+        .inv-foot, .mnt-sign { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-top: 40px; 
+            border-top: 1px solid #e2e8f0; 
+            padding-top: 20px; 
+        }
+        .inv-foot-thanks { 
+            font-size: 14px; 
+            font-weight: 800; 
+            color: #64748b; 
+            font-style: italic; 
+        }
+        .inv-foot-terms { text-align: right; max-width: 300px; }
+        .inv-foot-terms-title { 
+            font-size: 9px; 
+            font-weight: 800; 
+            color: #475569; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            margin-bottom: 4px; 
+        }
+        .inv-foot-terms-text  { font-size: 10px; color: #64748b; line-height: 1.6; }
+        .inv-foot-copyright   { font-size: 9px; color: #94a3b8; margin-top: 6px; }
+
         .mnt-sign-block { text-align: center; }
-        .mnt-sign-line { width: 160px; border-bottom: 1px solid #888; margin-bottom: 6px; height: 40px; }
-        .mnt-sign-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .mnt-sign-line { width: 140px; border-bottom: 1px solid #cbd5e1; margin-bottom: 6px; height: 35px; }
+        .mnt-sign-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
 
         @media print {
             body * { visibility: hidden; }
