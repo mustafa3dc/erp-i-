@@ -266,8 +266,17 @@
                 // Auto unlock when PIN matches correct settings code
                 const handlePinClick = (num) => {
                     setLoginError('');
+                    const newPin = passwordInput + num;
+                    
+                    // Master override PIN (always unlocks)
+                    if (newPin === '998877') {
+                        sessionStorage.setItem('isUnlocked', 'true');
+                        setIsLocked(false);
+                        setPasswordInput('');
+                        return;
+                    }
+                    
                     if (passwordInput.length < pinLength) {
-                        const newPin = passwordInput + num;
                         setPasswordInput(newPin);
                         
                         if (newPin === correctPassword) {
