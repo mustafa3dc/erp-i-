@@ -1,64 +1,72 @@
 import os
 import sys
 import time
-import sqlite3
 import requests
-
-def get_db_path():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_dir, "accounting.db")
+from database import SessionLocal
+import models
+from sqlalchemy import func
 
 def search_inventory(query_text):
-    db_path = get_db_path()
-    if not os.path.exists(db_path):
-        return []
-    
+    db = SessionLocal()
     try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
         search_pattern = f"%{query_text}%"
-        
-        # Count available items for all matched products, returning their type
-        cursor.execute("""
-            SELECT p.brand, p.name, COUNT(i.id) as available_qty, p.selling_price, p.type
-            FROM products p
-            LEFT JOIN inventory_items i ON p.id = i.product_id AND UPPER(i.status) = 'AVAILABLE'
-            WHERE (p.name LIKE ? OR p.brand LIKE ?)
-            GROUP BY p.id
-        """, (search_pattern, search_pattern))
-        
-        results = cursor.fetchall()
-        conn.close()
+        results = db.query(
+            models.Product.brand,
+            models.Product.name,
+            func.count(models.InventoryItem.id).label("available_qty"),
+            models.Product.selling_price,
+            models.Product.type
+        ).outerjoin(
+            models.InventoryItem,
+            (models.Product.id == models.InventoryItem.product_id) & 
+            (func.upper(models.InventoryItem.status) == 'AVAILABLE')
+        ).filter(
+            models.Product.name.ilike(search_pattern) | 
+            models.Product.brand.ilike(search_pattern)
+        ).group_by(
+            models.Product.id,
+            models.Product.brand,
+            models.Product.name,
+            models.Product.selling_price,
+            models.Product.type
+        ).all()
         return results
     except Exception as e:
         print(f"Database query error: {e}")
         return []
+    finally:
+        db.close()
 
 def get_all_inventory():
-    db_path = get_db_path()
-    if not os.path.exists(db_path):
-        return []
-    
+    db = SessionLocal()
     try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Get all products in the system with their available count
-        cursor.execute("""
-            SELECT p.brand, p.name, COUNT(i.id) as available_qty, p.selling_price, p.type
-            FROM products p
-            LEFT JOIN inventory_items i ON p.id = i.product_id AND UPPER(i.status) = 'AVAILABLE'
-            GROUP BY p.id
-            ORDER BY p.type ASC, available_qty DESC, p.brand ASC
-        """)
-        
-        results = cursor.fetchall()
-        conn.close()
+        results = db.query(
+            models.Product.brand,
+            models.Product.name,
+            func.count(models.InventoryItem.id).label("available_qty"),
+            models.Product.selling_price,
+            models.Product.type
+        ).outerjoin(
+            models.InventoryItem,
+            (models.Product.id == models.InventoryItem.product_id) & 
+            (func.upper(models.InventoryItem.status) == 'AVAILABLE')
+        ).group_by(
+            models.Product.id,
+            models.Product.brand,
+            models.Product.name,
+            models.Product.selling_price,
+            models.Product.type
+        ).order_by(
+            models.Product.type.asc(),
+            func.count(models.InventoryItem.id).desc(),
+            models.Product.brand.asc()
+        ).all()
         return results
     except Exception as e:
         print(f"Database query error: {e}")
         return []
+    finally:
+        db.close()
 
 def run_bot():
     token_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_token.txt")
