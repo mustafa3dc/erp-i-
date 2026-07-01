@@ -1303,17 +1303,17 @@
                                             <div class="text-xs text-emerald-400 mt-1 font-mono font-bold">{parseFloat(p.selling_price).toLocaleString()} د.ع</div>
                                         </div>
                                         <div class="text-left text-xs">
-                                            {p.type === 'Phone' ? (
-                                                <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/10">
-                                                    المتوفر: {available.length}
+                                            {p.type === 'Maintenance' ? (
+                                                <span class="px-2.5 py-1 rounded-full font-bold border bg-amber-500/10 text-amber-400 border-amber-500/10">
+                                                    صيانة / خدمة
                                                 </span>
                                             ) : (
                                                 <span class={`px-2.5 py-1 rounded-full font-bold border ${
-                                                    p.type === 'Accessory' 
-                                                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/10' 
-                                                    : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
+                                                    available.length > 0 
+                                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' 
+                                                    : 'bg-rose-500/10 text-rose-400 border-rose-500/10'
                                                 }`}>
-                                                    {p.type === 'Accessory' ? 'إكسسوار' : 'صيانة'}
+                                                    المتوفر: {available.length}
                                                 </span>
                                             )}
                                         </div>
