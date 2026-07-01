@@ -810,6 +810,222 @@
                             {currentTab === 'advanced' && <AdvancedAccountingPage accounts={accounts} entries={journalEntries} refresh={fetchData} />}
                             {currentTab === 'settings' && <ShopSettingsPage />}
                         </div>
+
+                        {/* Global Receipt Modal */}
+                        {globalReceipt && (() => {
+                            const s = getShopSettings();
+                            const shopName = s.shopName || 'متجر الموبايل';
+                            const logoLetter = shopName.trim().charAt(0).toUpperCase();
+                            const currency = s.currency || 'د.ع';
+                            const phone = s.phone || '';
+                            const email = s.email || '';
+                            const address = s.address || '';
+                            const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
+                            const invoiceNum = 'INV-' + getShortId(globalReceipt.id);
+                            
+                            return (
+                            <div class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={() => setGlobalReceipt(null)}>
+                                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                    <div id="print-receipt">
+                                        {globalReceipt.type === 'maintenance' ? (
+                                            /* ---------------------------------------------
+                                               MAINTENANCE RECEIPT TEMPLATE (وصل صيانة)
+                                               --------------------------------------------- */
+                                            <div class="mnt">
+                                                {/* Head: Title + Logo */}
+                                                <div class="mnt-head">
+                                                    <div>
+                                                        <div class="mnt-head-title">وصل صيانة وأمانة</div>
+                                                        <div class="mnt-head-sub">Maintenance & Service Receipt</div>
+                                                    </div>
+                                                    <div class="mnt-head-logo">{logoLetter}</div>
+                                                </div>
+
+                                                {/* Company block */}
+                                                <div class="mnt-company">
+                                                    <span class="mnt-company-name">{shopName}</span>
+                                                    {phone && <span>هاتف: {phone}&nbsp;&nbsp;</span>}
+                                                    {email && <span>بريد: {email}</span>}
+                                                    {address && <div>العنوان: {address}</div>}
+                                                </div>
+
+                                                {/* 2-Column Info Box */}
+                                                <div class="mnt-info">
+                                                    <div class="mnt-info-box">
+                                                        <div class="mnt-info-box-title">معلومات الزبون</div>
+                                                        <div class="mnt-info-row"><span class="mnt-info-key">الاسم:</span><span class="mnt-info-val">{globalReceipt.customer}</span></div>
+                                                        {globalReceipt.customerPhone && <div class="mnt-info-row"><span class="mnt-info-key">الهاتف:</span><span class="mnt-info-val">{globalReceipt.customerPhone}</span></div>}
+                                                        <div class="mnt-info-row"><span class="mnt-info-key">طريقة الدفع:</span><span class="mnt-info-val">{globalReceipt.paymentMethod === 'Cash' ? 'نقدي' : 'آجل'}</span></div>
+                                                    </div>
+                                                    <div class="mnt-info-box">
+                                                        <div class="mnt-info-box-title">تفاصيل الوصل</div>
+                                                        <div class="mnt-info-row"><span class="mnt-info-key">رقم الوصل:</span><span class="mnt-info-val">{invoiceNum}</span></div>
+                                                        <div class="mnt-info-row"><span class="mnt-info-key">التاريخ:</span><span class="mnt-info-val">{globalReceipt.date}</span></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Description of Service */}
+                                                <div class="mnt-section-title">الأجهزة والخدمات المنجزة</div>
+                                                <table class="mnt-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>اسم الجهاز / المنتج</th>
+                                                            <th class="th-r">التكلفة</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {globalReceipt.items.map((item, i) => (
+                                                            <tr key={i}>
+                                                                <td>
+                                                                    <strong>{item.brand} — {item.name}</strong>
+                                                                    {item.imei && <span style={{display:'block', fontSize:'11px', color:'#777'}}>IMEI: {item.imei}</span>}
+                                                                </td>
+                                                                <td class="td-r">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+
+                                                {/* Maintenance details note */}
+                                                {globalReceipt.maintenanceNote && (
+                                                    <div class="mnt-note-box">
+                                                        <div class="mnt-note-label">تقرير الفحص والصيانة:</div>
+                                                        <div class="mnt-note-text">{globalReceipt.maintenanceNote}</div>
+                                                    </div>
+                                                )}
+
+                                                {/* Warranty block */}
+                                                {globalReceipt.warrantyDays && parseInt(globalReceipt.warrantyDays) > 0 && (
+                                                    <div class="mnt-warranty">
+                                                        <span class="mnt-warranty-icon">🛡️</span>
+                                                        <div>
+                                                            <div class="mnt-warranty-title">الضمان والكفالة</div>
+                                                            <div class="mnt-warranty-text">هذا الجهاز مكفول لمدة {globalReceipt.warrantyDays} يوم من تاريخ استلامه على القطع المستبدلة فقط. الكفالة لا تشمل سوء الاستخدام أو الكسر أو السوائل.</div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Totals */}
+                                                <div class="mnt-total">
+                                                    <div class="mnt-total-box">
+                                                        <span class="mnt-total-label">المجموع الكلي:</span>
+                                                        <span class="mnt-total-amount">{globalReceipt.total.toLocaleString()} {currency}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Signature lines */}
+                                                <div class="mnt-sign">
+                                                    <div class="mnt-sign-block">
+                                                        <div class="mnt-sign-line"></div>
+                                                        <div class="mnt-sign-label">توقيع الزبون</div>
+                                                    </div>
+                                                    <div class="mnt-sign-block">
+                                                        <div class="mnt-sign-line"></div>
+                                                        <div class="mnt-sign-label">توقيع الفني / المستلم</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* ---------------------------------------------
+                                               STANDARD SALES RECEIPT TEMPLATE (فاتورة مبيعات)
+                                               --------------------------------------------- */
+                                            <div class="inv">
+                                                {/* Head: INVOICE + Logo */}
+                                                <div class="inv-head">
+                                                    <div>
+                                                        <div class="inv-head-title">INVOICE</div>
+                                                        <div class="inv-head-sub">Sales Receipt / فاتورة مبيعات</div>
+                                                    </div>
+                                                    <div class="inv-head-logo">{logoLetter}</div>
+                                                </div>
+
+                                                {/* Company block */}
+                                                <div class="inv-company">
+                                                    <span class="inv-company-name">{shopName}</span>
+                                                    {phone && <span>{phone}&nbsp;&nbsp;</span>}
+                                                    {email && <span>{email}</span>}
+                                                    {address && <div>{address}</div>}
+                                                </div>
+
+                                                {/* Info: Bill To | Payment | Invoice details */}
+                                                <div class="inv-info">
+                                                    <div class="inv-info-block">
+                                                        <div class="inv-info-label">BILL TO</div>
+                                                        <div class="inv-info-val">{globalReceipt.customer}</div>
+                                                    </div>
+                                                    <div class="inv-info-block">
+                                                        <div class="inv-info-label">PAYMENT</div>
+                                                        <div class="inv-info-val">{globalReceipt.paymentMethod === 'Cash' ? 'Cash / نقدي' : 'Credit / آجل'}</div>
+                                                    </div>
+                                                    <div class="inv-info-block">
+                                                        <div class="inv-info-label">DETAILS</div>
+                                                        <div class="inv-info-row"><span class="inv-info-row-key">INVOICE #</span><span class="inv-info-row-val">{invoiceNum}</span></div>
+                                                        <div class="inv-info-row"><span class="inv-info-row-key">DATE</span><span class="inv-info-row-val">{globalReceipt.date}</span></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Table */}
+                                                <table class="inv-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style={{width:'40px'}}>QTY</th>
+                                                            <th class="th-desc">DESCRIPTION</th>
+                                                            <th>UNIT PRICE</th>
+                                                            <th class="th-amt">AMOUNT</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {globalReceipt.items.map((item, i) => (
+                                                            <tr key={i}>
+                                                                <td class="td-qty">1</td>
+                                                                <td class="td-desc">
+                                                                    <div class="inv-desc-name">{item.brand} — {item.name}</div>
+                                                                    {item.imei && <div class="inv-desc-sub">IMEI: {item.imei}</div>}
+                                                                    {item.battery_health && <div class="inv-desc-sub">Battery: {item.battery_health}%</div>}
+                                                                </td>
+                                                                <td class="td-up">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                                <td class="td-amt">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+
+                                                {/* Totals */}
+                                                <div class="inv-totals">
+                                                    <div class="inv-totals-row">
+                                                        <span>Subtotal</span>
+                                                        <span>{globalReceipt.total.toLocaleString()} {currency}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="inv-totals-grand">
+                                                    <span>TOTAL</span>
+                                                    <span>{globalReceipt.total.toLocaleString()} {currency}</span>
+                                                </div>
+
+                                                {/* Footer */}
+                                                <div class="inv-foot">
+                                                    <div class="inv-foot-thanks">Thank you</div>
+                                                    <div class="inv-foot-terms">
+                                                        <div class="inv-foot-terms-title">TERMS &amp; CONDITIONS</div>
+                                                        <div class="inv-foot-terms-text">{footerNote}</div>
+                                                        <div class="inv-foot-copyright">© {new Date().getFullYear()} {shopName}. All rights reserved.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div class="flex gap-3 p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl no-print">
+                                        <button onClick={() => setGlobalReceipt(null)} class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-100 transition-all">
+                                            إغلاق
+                                        </button>
+                                        <button onClick={() => window.print()} class="flex-1 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                                            <Icon name="printer" className="w-4 h-4" /> طباعة الفاتورة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            );
+                        })()}
                     </main>
                 </div>
             );
@@ -1018,7 +1234,6 @@
                                                     maintenanceNote: sale.maintenance_note || '',
                                                     warrantyDays: sale.warranty_days || '30'
                                                 });
-                                                setCurrentTab('pos');
                                             }}
                                             class="p-4 bg-slate-950/60 hover:bg-slate-950 border border-slate-850 hover:border-slate-700 rounded-2xl flex justify-between items-center cursor-pointer transition-all hover:-translate-y-[1px]"
                                         >
