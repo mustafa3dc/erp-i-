@@ -198,6 +198,7 @@ def create_sale(db: Session, sale_in: schemas.SaleCreate):
             )
 
         # Handle IMEI / Serialised physical item if provided
+        selected_inv_item_id = item.inventory_item_id
         if item.inventory_item_id:
             inv_item = db.query(models.InventoryItem).filter(models.InventoryItem.id == item.inventory_item_id).first()
             if not inv_item or inv_item.status != models.InventoryStatus.AVAILABLE:
@@ -207,12 +208,25 @@ def create_sale(db: Session, sale_in: schemas.SaleCreate):
                 )
             # Mark status as SOLD
             inv_item.status = models.InventoryStatus.SOLD
+        else:
+            # For non-serialized items (Accessories/Maintenance), find first available stock item and sell it
+            inv_item = db.query(models.InventoryItem).filter(
+                models.InventoryItem.product_id == item.product_id,
+                models.InventoryItem.status == models.InventoryStatus.AVAILABLE
+            ).first()
+            if not inv_item:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"نفذت الكمية! لا يوجد مخزون كافي لـ {product.brand} - {product.name}."
+                )
+            inv_item.status = models.InventoryStatus.SOLD
+            selected_inv_item_id = inv_item.id
         
         # Create SaleItem record
         db_item = models.SaleItem(
             sale_id=db_sale.id,
             product_id=item.product_id,
-            inventory_item_id=item.inventory_item_id,
+            inventory_item_id=selected_inv_item_id,
             price=item.price
         )
         db.add(db_item)
