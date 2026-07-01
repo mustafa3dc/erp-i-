@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام متجر الموبايل ERP - مبيعات ومخازن</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fonts -->
+    <link class="preconnect" href="https://fonts.googleapis.com">
+    <link class="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Tajawal:wght@400;500;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', 'Outfit', sans-serif; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* CLEAN INVOICE */
+        #print-receipt { background: #fff; }
+        .inv {
+            font-family: 'Outfit', 'Tajawal', sans-serif;
+            background: #fff;
+            color: #111;
+            padding: 48px 56px;
+            max-width: 800px;
+            margin: 0 auto;
+            direction: ltr;
+        }
+        .inv-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        .inv-head-title { font-size: 54px; font-weight: 900; color: #1b2354; letter-spacing: 2px; line-height: 1; text-transform: uppercase; }
+        .inv-head-logo { width: 86px; height: 86px; border-radius: 50%; background: #bbb; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 1px; flex-shrink: 0; }
+        .inv-company { margin-bottom: 28px; font-size: 13px; color: #333; line-height: 1.7; }
+        .inv-company-name { font-weight: 800; font-size: 15px; color: #1b2354; display: block; margin-bottom: 2px; }
+        .inv-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 24px; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 20px 0; margin-bottom: 32px; }
+        .inv-info-block:last-child { text-align: right; }
+        .inv-info-label { font-size: 10px; font-weight: 800; color: #1b2354; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 2px solid #d63031; padding-bottom: 4px; margin-bottom: 10px; display: inline-block; }
+        .inv-info-val { font-size: 13px; color: #333; line-height: 1.8; }
+        .inv-info-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+        .inv-info-row-key { font-weight: 700; color: #1b2354; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .inv-info-row-val { color: #555; }
+        .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .inv-table thead tr { border-bottom: 2px solid #d63031; }
+        .inv-table thead th { padding: 8px 10px 10px; font-size: 11px; font-weight: 800; color: #1b2354; text-transform: uppercase; letter-spacing: 1px; text-align: left; }
+        .inv-table thead th.th-desc { text-align: center; }
+        .inv-table thead th.th-amt  { text-align: right; }
+        .inv-table tbody tr { border-bottom: 1px solid #efefef; }
+        .inv-table tbody td { padding: 12px 10px; vertical-align: top; color: #333; }
+        .inv-table tbody td.td-qty  { width: 40px; font-weight: 600; color: #1b2354; }
+        .inv-table tbody td.td-desc { text-align: center; }
+        .inv-table tbody td.td-up   { width: 130px; }
+        .inv-table tbody td.td-amt  { text-align: right; font-weight: 700; width: 130px; }
+        .inv-desc-name { font-weight: 600; color: #222; }
+        .inv-desc-sub  { font-size: 10px; color: #aaa; margin-top: 2px; font-family: monospace; }
+        .inv-totals { margin-top: 0; border-top: 1px solid #efefef; }
+        .inv-totals-row { display: flex; justify-content: flex-end; padding: 5px 10px; font-size: 13px; color: #555; }
+        .inv-totals-row > span:first-child { min-width: 150px; text-align: left; }
+        .inv-totals-row > span:last-child  { min-width: 130px; text-align: right; }
+        .inv-totals-grand { border-top: 2px solid #1b2354; margin-top: 6px; padding: 10px 10px 0; display: flex; justify-content: flex-end; }
+        .inv-totals-grand > span:first-child { min-width: 150px; text-align: left; font-size: 16px; font-weight: 900; color: #1b2354; text-transform: uppercase; letter-spacing: 1px; }
+        .inv-totals-grand > span:last-child  { min-width: 130px; text-align: right; font-size: 20px; font-weight: 900; color: #1b2354; }
+        .inv-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; }
+        .inv-foot-thanks { font-family: 'Dancing Script', cursive; font-size: 42px; font-weight: 700; color: #1b2354; line-height: 1; }
+        .inv-foot-terms { text-align: right; max-width: 260px; }
+        .inv-foot-terms-title { font-size: 10px; font-weight: 800; color: #d63031; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #d63031; padding-left: 8px; margin-bottom: 6px; }
+        .inv-foot-terms-text  { font-size: 11px; color: #777; line-height: 1.8; border-left: 3px solid #d63031; padding-left: 8px; }
+        .inv-foot-copyright   { font-size: 10px; color: #aaa; margin-top: 8px; padding-left: 11px; }
+
+        /* =========================================
+           MAINTENANCE RECEIPT
+        ========================================= */
+        .mnt {
+            font-family: 'Outfit', 'Tajawal', sans-serif;
+            background: #fff;
+            color: #111;
+            padding: 48px 56px;
+            max-width: 800px;
+            margin: 0 auto;
+            direction: rtl;
+        }
+        .mnt-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 3px solid #f59e0b; padding-bottom: 20px; }
+        .mnt-head-title { font-size: 38px; font-weight: 900; color: #92400e; letter-spacing: 1px; line-height: 1.1; }
+        .mnt-head-sub { font-size: 12px; color: #b45309; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .mnt-head-logo { width: 80px; height: 80px; border-radius: 50%; background: #d97706; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+        .mnt-company { margin-bottom: 24px; font-size: 13px; color: #555; line-height: 1.8; }
+        .mnt-company-name { font-weight: 800; font-size: 15px; color: #1b2354; display: block; }
+
+        .mnt-info { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .mnt-info-box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+        .mnt-info-box-title { font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f59e0b; padding-bottom: 4px; margin-bottom: 10px; display: inline-block; }
+        .mnt-info-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+        .mnt-info-key { font-weight: 700; color: #444; }
+        .mnt-info-val { color: #666; }
+
+        .mnt-section-title { font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; border-right: 3px solid #f59e0b; padding-right: 8px; margin-bottom: 12px; }
+        .mnt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+        .mnt-table thead tr { border-bottom: 2px solid #f59e0b; }
+        .mnt-table thead th { padding: 8px 10px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
+        .mnt-table thead th.th-r { text-align: left; width: 130px; }
+        .mnt-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+        .mnt-table tbody td { padding: 12px 10px; vertical-align: top; color: #333; text-align: right; }
+        .mnt-table tbody td.td-r { text-align: left; font-weight: 700; }
+
+        .mnt-note-box { border: 1px solid #fde68a; background: #fffbeb; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+        .mnt-note-label { font-size: 10px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .mnt-note-text { font-size: 13px; color: #555; line-height: 1.7; }
+
+        .mnt-total { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+        .mnt-total-box { border-top: 2px solid #1b2354; padding-top: 10px; display: flex; gap: 40px; }
+        .mnt-total-label { font-size: 16px; font-weight: 900; color: #1b2354; text-transform: uppercase; }
+        .mnt-total-amount { font-size: 20px; font-weight: 900; color: #1b2354; }
+
+        .mnt-warranty { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .mnt-warranty-icon { font-size: 24px; }
+        .mnt-warranty-title { font-size: 12px; font-weight: 800; color: #065f46; }
+        .mnt-warranty-text { font-size: 11px; color: #047857; margin-top: 2px; }
+
+        .mnt-sign { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+        .mnt-sign-block { text-align: center; }
+        .mnt-sign-line { width: 160px; border-bottom: 1px solid #888; margin-bottom: 6px; height: 40px; }
+        .mnt-sign-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #print-receipt, #print-receipt * { visibility: visible; }
+            #print-receipt { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; }
+            .inv { padding: 28px 36px; max-width: 100%; }
+            .mnt { padding: 28px 36px; max-width: 100%; }
+            .inv-table thead tr, .inv-totals-grand, .inv-foot-terms-title,
+            .inv-foot-terms-text, .inv-info-label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .mnt-head, .mnt-table thead tr, .mnt-note-box, .mnt-warranty,
+            .mnt-info-box-title, .mnt-section-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+        }
+    </style>
+    <!-- React & Babel CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="h-full overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Custom Component for Icon Loader
+        const Icon = ({ name, className }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} className={className}></i>;
+        };
+
+        function App() {
+            const [currentTab, setCurrentTab] = useState('dashboard');
+            const [accounts, setAccounts] = useState([]);
+            const [journalEntries, setJournalEntries] = useState([]);
+            const [products, setProducts] = useState([]);
+            const [sales, setSales] = useState([]);
+            const [loading, setLoading] = useState(false);
+
+            // Fetch data
+            const fetchData = async () => {
+                setLoading(true);
+                try {
+                    const accRes = await axios.get('/accounts/');
+                    const jeRes = await axios.get('/journal-entries/');
+                    const prodRes = await axios.get('/products/');
+                    const salesRes = await axios.get('/sales/');
+                    setAccounts(accRes.data);
+                    setJournalEntries(jeRes.data);
+                    setProducts(prodRes.data);
+                    setSales(salesRes.data);
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            return (
+                <div class="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+                    {/* Sidebar */}
+                    <aside class="w-64 bg-slate-900 border-l border-slate-800 flex flex-col justify-between">
+                        <div>
+                            {/* Logo */}
+                            <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                    <Icon name="smartphone" className="w-5 h-5 text-slate-950" />
+                                </div>
+                                <span class="font-bold text-base text-emerald-400">نظام المبيعات والمخزن</span>
+                            </div>
+
+                            {/* Nav Items */}
+                            <nav class="p-4 space-y-2">
+                                <button 
+                                    onClick={() => setCurrentTab('dashboard')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="bar-chart-3" className="w-5 h-5" />
+                                    <span>لوحة التحكم (الملخص)</span>
+                                </button>
+                                <button 
+                                    onClick={() => setCurrentTab('pos')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'pos' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="shopping-cart" className="w-5 h-5" />
+                                    <span>نقطة البيع (POS)</span>
+                                </button>
+                                <button 
+                                    onClick={() => setCurrentTab('inventory')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'inventory' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="package" className="w-5 h-5" />
+                                    <span>إدارة المخزن</span>
+                                </button>
+                                <button 
+                                    onClick={() => setCurrentTab('advanced')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'advanced' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="book-open" className="w-5 h-5" />
+                                    <span>الحسابات المتقدمة</span>
+                                </button>
+                                <button 
+                                    onClick={() => setCurrentTab('settings')}
+                                    class={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentTab === 'settings' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                                >
+                                    <Icon name="settings" className="w-5 h-5" />
+                                    <span>إعدادات المتجر</span>
+                                </button>
+                            </nav>
+                        </div>
+                        <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
+                            متجر الموبايل ERP - المبسط v1.2
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main class="flex-1 flex flex-col overflow-hidden bg-slate-950">
+                        {/* Header */}
+                        <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur">
+                            <h1 class="text-xl font-bold text-slate-200">
+                                {currentTab === 'dashboard' && 'لوحة التحكم للمحل'}
+                                {currentTab === 'pos' && 'نقطة بيع سريعة (سجل فاتورة)'}
+                                {currentTab === 'inventory' && 'إدارة المنتجات والمستودع'}
+                                {currentTab === 'advanced' && 'إعدادات الحسابات المتقدمة'}
+                                {currentTab === 'settings' && 'إعدادات المتجر والفاتورة'}
+                            </h1>
+                            <button 
+                                onClick={fetchData}
+                                class="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-all"
+                            >
+                                <Icon name="refresh-cw" className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                            </button>
+                        </header>
+
+                        {/* Page Body */}
+                        <div class="flex-1 overflow-y-auto p-8">
+                            {currentTab === 'dashboard' && <DashboardPage accounts={accounts} entries={journalEntries} sales={sales} products={products} />}
+                            {currentTab === 'pos' && <POSPage products={products} sales={sales} refresh={fetchData} />}
+                            {currentTab === 'inventory' && <InventoryPage products={products} refresh={fetchData} />}
+                            {currentTab === 'advanced' && <AdvancedAccountingPage accounts={accounts} entries={journalEntries} refresh={fetchData} />}
+                            {currentTab === 'settings' && <ShopSettingsPage />}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        // Shop Settings helper - reads from localStorage
+        function getShopSettings() {
+            try {
+                return JSON.parse(localStorage.getItem('shopSettings') || '{}');
+            } catch { return {}; }
+        }
+
+        // Dashboard Component
+        function DashboardPage({ accounts, entries, sales, products }) {
+            const calculateTotals = () => {
+                let assets = 0, liabilities = 0, equity = 0, revenue = 0, expenses = 0;
+                let cashInBox = 0;
+                let receivables = 0;
+
+                accounts.forEach(acc => {
+                    let bal = 0;
+                    entries.forEach(entry => {
+                        entry.items.forEach(item => {
+                            if (item.account_id === acc.id) {
+                                bal += (parseFloat(item.debit) - parseFloat(item.credit));
+                            }
+                        });
+                    });
+
+                    if (acc.type === 'Asset') {
+                        assets += bal;
+                        if (acc.code === '1010') cashInBox += bal;
+                        if (acc.code === '1100') receivables += bal;
+                    }
+                    else if (acc.type === 'Liability') liabilities += -bal;
+                    else if (acc.type === 'Equity') equity += -bal;
+                    else if (acc.type === 'Revenue') revenue += -bal;
+                    else if (acc.type === 'Expense') expenses += bal;
+                });
+
+                return { assets, liabilities, equity, revenue, expenses, cashInBox, receivables };
+            };
+
+            const totals = calculateTotals();
+            const totalStockItems = products.reduce((acc, p) => acc + p.items.filter(i => i.status === 'Available').length, 0);
+            const netProfit = totals.revenue - totals.expenses;
+
+            return (
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                            <span class="text-slate-400 text-sm">المبيعات الإجمالية</span>
+                            <div class="text-2xl font-bold text-emerald-400 mt-2 truncate">{totals.revenue.toFixed(2)} د.إ</div>
+                        </div>
+                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                            <span class="text-slate-400 text-sm">الكاش في الصندوق</span>
+                            <div class="text-2xl font-bold text-sky-400 mt-2 truncate">{totals.cashInBox.toFixed(2)} د.إ</div>
+                        </div>
+                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                            <span class="text-slate-400 text-sm">ديون العملاء (Credit)</span>
+                            <div class="text-2xl font-bold text-rose-400 mt-2 truncate">{totals.receivables.toFixed(2)} د.إ</div>
+                        </div>
+                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                            <span class="text-slate-400 text-sm">صافي الأرباح المقدرة</span>
+                            <div class={`text-2xl font-bold mt-2 truncate ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {netProfit.toFixed(2)} د.إ
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-4 text-emerald-400">حالة المخزن المتوفر</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between border-b border-slate-800 pb-2">
+                                    <span>إجمالي أجهزة الموبايل الجاهزة للبيع</span>
+                                    <span class="font-bold text-emerald-400">{totalStockItems} جهاز</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-800 pb-2">
+                                    <span>إجمالي قيمة المخزن (التكلفة)</span>
+                                    <span class="font-bold text-sky-400">
+                                        {products.reduce((acc, p) => acc + (parseFloat(p.purchase_price) * p.items.filter(i => i.status === 'Available').length), 0).toFixed(2)} د.إ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-4 text-emerald-400">آخر فواتير المبيعات</h3>
+                            <div class="space-y-3 overflow-y-auto max-h-[300px]">
+                                {sales.slice(-5).reverse().map(sale => (
+                                    <div key={sale.id} class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
+                                        <div>
+                                            <div class="font-bold text-sm text-slate-200">فاتورة بيع لـ: {sale.customer_name || 'زبون نقدي'}</div>
+                                            <div class="text-xs text-slate-400 mt-1">تاريخ العملية: {new Date(sale.sale_date).toLocaleDateString('ar-EG')}</div>
+                                        </div>
+                                        <div class="text-left">
+                                            <span class="px-3 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-semibold">{sale.payment_method === 'Cash' ? 'نقداً' : 'آجل'}</span>
+                                            <div class="text-xs font-bold text-slate-300 mt-1">{parseFloat(sale.total_amount).toFixed(2)} د.إ</div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {sales.length === 0 && (
+                                    <div class="text-center text-slate-500 py-8">لم يتم إجراء أي عملية بيع بعد.</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // POS Component
+        function POSPage({ products, sales, refresh }) {
+            const [customerName, setCustomerName] = useState('');
+            const [paymentMethod, setPaymentMethod] = useState('Cash');
+            const [cart, setCart] = useState([]);
+            const [errorMsg, setErrorMsg] = useState('');
+            const [receipt, setReceipt] = useState(null);
+            const [maintenanceNote, setMaintenanceNote] = useState('');
+            const [warrantyDays, setWarrantyDays] = useState('30');
+            const [customerPhone, setCustomerPhone] = useState('');
+
+            const printReceipt = () => {
+                window.print();
+            };
+            
+            const availableProducts = products.filter(p => p.type !== 'Phone' || p.items.some(i => i.status === 'Available'));
+
+            const addToCart = (product) => {
+                let selectedItemId = null;
+                let selectedImei = '';
+                let selectedBattery = null;
+                if (product.type === 'Phone') {
+                    const available = product.items.find(i => i.status === 'Available');
+                    if (!available) return;
+                    selectedItemId = available.id;
+                    selectedImei = available.imei;
+                    selectedBattery = available.battery_health;
+                }
+
+                if (product.type === 'Phone' && cart.some(item => item.inventory_item_id === selectedItemId)) {
+                    alert("هذا الهاتف (IMEI) مضاف بالفعل في الفاتورة!");
+                    return;
+                }
+
+                setCart([...cart, {
+                    product_id: product.id,
+                    name: product.name,
+                    brand: product.brand,
+                    type: product.type,
+                    inventory_item_id: selectedItemId,
+                    imei: selectedImei,
+                    battery_health: selectedBattery,
+                    price: product.selling_price
+                }]);
+            };
+
+            const removeFromCart = (index) => {
+                setCart(cart.filter((_, i) => i !== index));
+            };
+
+            const updateCartPrice = (index, newPrice) => {
+                const newCart = [...cart];
+                newCart[index].price = newPrice;
+                setCart(newCart);
+            };
+
+            const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+            const isMaintenanceCart = cart.length > 0 && cart.every(i => i.type === 'Maintenance');
+
+            const handleCheckout = async (e) => {
+                e.preventDefault();
+                setErrorMsg('');
+                if (cart.length === 0) {
+                    setErrorMsg("الفاتورة فارغة! أضف سلعاً أولاً.");
+                    return;
+                }
+
+                try {
+                    const saleRes = await axios.post('/sales/', {
+                        customer_name: customerName || "زبون نقدي",
+                        payment_method: paymentMethod,
+                        total_amount: total,
+                        items: cart.map(item => ({
+                            product_id: item.product_id,
+                            inventory_item_id: item.inventory_item_id,
+                            price: parseFloat(item.price) || 0
+                        }))
+                    });
+                    // Save receipt data before clearing cart
+                    setReceipt({
+                        id: saleRes.data.id,
+                        type: isMaintenanceCart ? 'maintenance' : 'sale',
+                        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                        customer: customerName || "زبون نقدي",
+                        customerPhone: customerPhone,
+                        paymentMethod: paymentMethod,
+                        items: [...cart],
+                        total: total,
+                        maintenanceNote: maintenanceNote,
+                        warrantyDays: warrantyDays
+                    });
+                    setCustomerName('');
+                    setCustomerPhone('');
+                    setPaymentMethod('Cash');
+                    setMaintenanceNote('');
+                    setWarrantyDays('30');
+                    setCart([]);
+                    refresh();
+                } catch (err) {
+                    setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء إتمام عملية البيع.");
+                }
+            };
+
+            return (
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-7 p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between min-h-[500px]">
+                        <div>
+                            <h3 class="font-bold text-lg mb-6 text-emerald-400">فاتورة البيع الحالية</h3>
+                            {errorMsg && (
+                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl mb-4">
+                                    {errorMsg}
+                                </div>
+                            )}
+
+                            <div class="space-y-3 mb-6">
+                                {cart.map((item, index) => (
+                                    <div key={index} class="p-4 bg-slate-950 border border-slate-850 rounded-xl flex justify-between items-center">
+                                        <div class="flex-1 pr-2">
+                                            <div class="font-bold text-sm text-slate-200">{item.brand} - {item.name}</div>
+                                            {item.type === 'Phone' && (
+                                                <div class="text-[10px] text-emerald-400 font-mono mt-1">
+                                                    IMEI: {item.imei} {item.battery_health ? `| بطارية: ${item.battery_health}%` : ''}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={item.price}
+                                                onChange={e => updateCartPrice(index, e.target.value)}
+                                                onFocus={e => e.target.select()}
+                                                class="w-44 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-right font-mono text-emerald-400 text-sm focus:outline-none"
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => removeFromCart(index)}
+                                                class="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg"
+                                            >
+                                                <Icon name="trash" className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {cart.length === 0 && (
+                                    <div class="text-center py-12 text-slate-500">الفاتورة فارغة. اختر من قائمة المنتجات لإضافة الأجهزة.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-6 mt-6 space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">اسم الزبون (اختياري)</label>
+                                    <input 
+                                        type="text" 
+                                        value={customerName}
+                                        onChange={e => setCustomerName(e.target.value)}
+                                        placeholder="مثال: مصطفى علي"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 mb-1">طريقة الدفع</label>
+                                    <select 
+                                        value={paymentMethod}
+                                        onChange={e => setPaymentMethod(e.target.value)}
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+                                    >
+                                        <option value="Cash">نقدي (Cash)</option>
+                                        <option value="Credit">آجل / بالدين (Credit)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Extra maintenance fields */}
+                            {isMaintenanceCart && (
+                                <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-3">
+                                    <div class="text-xs font-bold text-amber-400 mb-2 flex items-center gap-2">
+                                        <Icon name="wrench" className="w-4 h-4" /> حقول فاتورة الصيانة
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-slate-400 mb-1">رقم هاتف الزبون</label>
+                                            <input type="text" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="07xxxxxxxxx" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none" />
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-400 mb-1">مدة الضمان (أيام)</label>
+                                            <input type="number" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-400 mb-1">وصف العطل / الخدمة المنجزة</label>
+                                        <textarea rows="2" value={maintenanceNote} onChange={e => setMaintenanceNote(e.target.value)} placeholder="مثال: تغيير شاشة مكسورة — تم تركيب شاشة أصلية" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none resize-none" />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-850">
+                                <div>
+                                    <span class="text-slate-400 text-xs block">الإجمالي المستحق</span>
+                                    <span class="text-2xl font-bold text-emerald-400">{total.toFixed(2)} د.إ</span>
+                                </div>
+                                <button 
+                                    onClick={handleCheckout}
+                                    disabled={cart.length === 0}
+                                    class={`flex items-center gap-2 px-8 py-3.5 font-bold rounded-xl shadow-lg transition-all ${
+                                        cart.length > 0 
+                                        ? (isMaintenanceCart ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20')
+                                        : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
+                                    }`}
+                                >
+                                    <Icon name="printer" className="w-5 h-5" />
+                                    {isMaintenanceCart ? 'حفظ وصل الصيانة' : 'حفظ الفاتورة وطباعتها'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Receipt Modal */}
+                    {receipt && (() => {
+                        const s = getShopSettings();
+                        const shopName = s.shopName || 'متجر الموبايل';
+                        const currency = s.currency || 'د.ع';
+                        const phone = s.phone || '';
+                        const email = s.email || '';
+                        const address = s.address || '';
+                        const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
+                        const invoiceNum = 'INV-' + Date.now().toString().slice(-6);
+                        return (
+                        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
+                            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                <div id="print-receipt">
+                                    <div class="inv">
+                                        {/* Head: INVOICE + Logo */}
+                                        <div class="inv-head">
+                                            <div class="inv-head-title">INVOICE</div>
+                                            <div class="inv-head-logo">LOGO</div>
+                                        </div>
+
+                                        {/* Company block */}
+                                        <div class="inv-company">
+                                            <span class="inv-company-name">{shopName}</span>
+                                            {phone && <span>{phone}&nbsp;&nbsp;</span>}
+                                            {email && <span>{email}</span>}
+                                            {address && <div>{address}</div>}
+                                        </div>
+
+                                        {/* Info: Bill To | Payment | Invoice details */}
+                                        <div class="inv-info">
+                                            <div class="inv-info-block">
+                                                <div class="inv-info-label">BILL TO</div>
+                                                <div class="inv-info-val">{receipt.customer}</div>
+                                            </div>
+                                            <div class="inv-info-block">
+                                                <div class="inv-info-label">PAYMENT</div>
+                                                <div class="inv-info-val">{receipt.paymentMethod === 'Cash' ? 'Cash / نقدي' : 'Credit / آجل'}</div>
+                                            </div>
+                                            <div class="inv-info-block">
+                                                <div class="inv-info-label">DETAILS</div>
+                                                <div class="inv-info-row"><span class="inv-info-row-key">INVOICE #</span><span class="inv-info-row-val">{invoiceNum}</span></div>
+                                                <div class="inv-info-row"><span class="inv-info-row-key">DATE</span><span class="inv-info-row-val">{receipt.date}</span></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Table */}
+                                        <table class="inv-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style={{width:'40px'}}>QTY</th>
+                                                    <th class="th-desc">DESCRIPTION</th>
+                                                    <th>UNIT PRICE</th>
+                                                    <th class="th-amt">AMOUNT</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {receipt.items.map((item, i) => (
+                                                    <tr key={i}>
+                                                        <td class="td-qty">1</td>
+                                                        <td class="td-desc">
+                                                            <div class="inv-desc-name">{item.brand} — {item.name}</div>
+                                                            {item.imei && <div class="inv-desc-sub">IMEI: {item.imei}</div>}
+                                                            {item.battery_health && <div class="inv-desc-sub">Battery: {item.battery_health}%</div>}
+                                                        </td>
+                                                        <td class="td-up">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                        <td class="td-amt">{parseFloat(item.price).toLocaleString()} {currency}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Totals */}
+                                        <div class="inv-totals">
+                                            <div class="inv-totals-row">
+                                                <span>Subtotal</span>
+                                                <span>{receipt.total.toLocaleString()} {currency}</span>
+                                            </div>
+                                        </div>
+                                        <div class="inv-totals-grand">
+                                            <span>TOTAL</span>
+                                            <span>{receipt.total.toLocaleString()} {currency}</span>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div class="inv-foot">
+                                            <div class="inv-foot-thanks">Thank you</div>
+                                            <div class="inv-foot-terms">
+                                                <div class="inv-foot-terms-title">TERMS &amp; CONDITIONS</div>
+                                                <div class="inv-foot-terms-text">{footerNote}</div>
+                                                <div class="inv-foot-copyright">© {new Date().getFullYear()} {shopName}. All rights reserved.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl no-print">
+                                    <button onClick={() => setReceipt(null)} class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-100 transition-all">
+                                        إغلاق
+                                    </button>
+                                    <button onClick={printReceipt} class="flex-1 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                                        <Icon name="printer" className="w-4 h-4" /> طباعة الفاتورة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        );
+                    })()}
+
+
+
+                    <div class="lg:col-span-5 p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <h3 class="font-bold text-lg mb-6 text-emerald-400">قائمة البضائع والمنتجات بالمحل</h3>
+                        <div class="space-y-3 overflow-y-auto max-h-[500px] pr-2">
+                            {availableProducts.map(p => {
+                                const available = p.items.filter(i => i.status === 'Available');
+                                return (
+                                    <div 
+                                        key={p.id} 
+                                        onClick={() => addToCart(p)}
+                                        class="p-4 bg-slate-950 hover:bg-slate-800 border border-slate-850 rounded-xl flex justify-between items-center cursor-pointer transition-all"
+                                    >
+                                        <div>
+                                            <div class="font-bold text-sm text-slate-200">{p.brand} - {p.name}</div>
+                                            <div class="text-xs text-slate-400 mt-1 font-mono">{parseFloat(p.selling_price).toFixed(2)} د.إ</div>
+                                        </div>
+                                        <div class="text-left text-xs">
+                                            {p.type === 'Phone' ? (
+                                                <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">
+                                                    المتوفر: {available.length}
+                                                </span>
+                                            ) : (
+                                                <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold">
+                                                    {p.type === 'Accessory' ? 'إكسسوار' : 'قطعة صيانة'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Inventory Component
+        function InventoryPage({ products, refresh }) {
+            const [name, setName] = useState('');
+            const [compatibleDevice, setCompatibleDevice] = useState('');
+            const [selectedBrand, setSelectedBrand] = useState('Apple');
+            const [customBrand, setCustomBrand] = useState('');
+            const [type, setType] = useState('Phone');
+            const [purchasePrice, setPurchasePrice] = useState('');
+            const [sellingPrice, setSellingPrice] = useState('');
+            const [imeisInput, setImeisInput] = useState('');
+            const [errorMsg, setErrorMsg] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Phone');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [quantity, setQuantity] = useState('1');
+            const [batteryHealth, setBatteryHealth] = useState('');
+
+            const POPULAR_BRANDS = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo", "Vivo", "أخرى"];
+
+            // Sync product type state with the active category tab
+            useEffect(() => {
+                setType(activeCategory);
+            }, [activeCategory]);
+
+            const handleCreateProduct = async (e) => {
+                e.preventDefault();
+                setErrorMsg('');
+                
+                const finalBrand = selectedBrand === 'أخرى' ? customBrand.trim() : selectedBrand;
+                if (!finalBrand) {
+                    setErrorMsg("يرجى تحديد أو كتابة اسم الشركة المصنعة.");
+                    return;
+                }
+
+                // If maintenance, append compatible device to name
+                let finalName = name.trim();
+                if (activeCategory === 'Maintenance' && compatibleDevice.trim()) {
+                    finalName = `${finalName} (${compatibleDevice.trim()})`;
+                }
+
+                const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+
+                try {
+                    await axios.post('/products/', {
+                        name: finalName,
+                        brand: finalBrand,
+                        type: activeCategory, // Locked to active tab category
+                        purchase_price: parseFloat(purchasePrice) || 0,
+                        selling_price: parseFloat(sellingPrice) || 0,
+                        imeis: activeCategory === 'Phone' ? imeis : null,
+                        quantity: activeCategory === 'Phone' ? 1 : parseInt(quantity) || 1,
+                        battery_health: (activeCategory === 'Phone' && selectedBrand === 'Apple' && batteryHealth) ? parseInt(batteryHealth) : null
+                    });
+                    setName('');
+                    setCompatibleDevice('');
+                    setCustomBrand('');
+                    setPurchasePrice('');
+                    setSellingPrice('');
+                    setImeisInput('');
+                    setQuantity('1');
+                    setBatteryHealth('');
+                    refresh();
+                } catch (err) {
+                    setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء إضافة البضاعة.");
+                }
+            };
+
+            return (
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column: Form dynamically adapted to the active tab */}
+                    <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl h-fit">
+                        <h3 class="font-bold text-lg mb-6 text-emerald-400">
+                            {activeCategory === 'Phone' && "شراء وتنزيل أجهزة موبايل"}
+                            {activeCategory === 'Accessory' && "شراء وتنزيل إكسسوارات"}
+                            {activeCategory === 'Maintenance' && "شراء وتنزيل قطع صيانة"}
+                        </h3>
+                        <form onSubmit={handleCreateProduct} class="space-y-4">
+                            {errorMsg && (
+                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl">
+                                    {errorMsg}
+                                </div>
+                            )}
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">الشركة المصنعة (Brand)</label>
+                                <select 
+                                    value={selectedBrand}
+                                    onChange={e => setSelectedBrand(e.target.value)}
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100 mb-2"
+                                >
+                                    {POPULAR_BRANDS.map(b => (
+                                        <option key={b} value={b}>{b}</option>
+                                    ))}
+                                </select>
+                                {selectedBrand === 'أخرى' && (
+                                    <input 
+                                        type="text" 
+                                        required
+                                        value={customBrand}
+                                        onChange={e => setCustomBrand(e.target.value)}
+                                        placeholder="اكتب اسم الشركة هنا"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
+                                    />
+                                )}
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">
+                                    {activeCategory === 'Phone' && "اسم الجهاز والموديل"}
+                                    {activeCategory === 'Accessory' && "اسم الإكسسوار"}
+                                    {activeCategory === 'Maintenance' && "اسم القطعة (شاشة، بطارية..)"}
+                                </label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    placeholder={
+                                        activeCategory === 'Phone' ? "مثال: iPhone 15 Pro Max" :
+                                        activeCategory === 'Accessory' ? "مثال: شاحن سريع 20W" : "مثال: شاشة iPhone 11 الأصلية"
+                                    }
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
+                                />
+                            </div>
+                            {activeCategory === 'Maintenance' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1">الأجهزة المتوافقة (يمكنك كتابة عدة أجهزة)</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        value={compatibleDevice}
+                                        onChange={e => setCompatibleDevice(e.target.value)}
+                                        placeholder="مثال: Galaxy A13, A04s, M13 (أو افصل بينها بـ /)"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
+                                    />
+                                </div>
+                            )}
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">سعر الشراء (التكلفة للقطعة)</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01"
+                                    required
+                                    placeholder="0.00"
+                                    value={purchasePrice}
+                                    onChange={e => setPurchasePrice(e.target.value)}
+                                    onFocus={e => e.target.select()}
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100 text-right font-mono"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-1">سعر البيع المقترح</label>
+                                <input 
+                                    type="number" 
+                                    step="0.01"
+                                    required
+                                    placeholder="0.00"
+                                    value={sellingPrice}
+                                    onChange={e => setSellingPrice(e.target.value)}
+                                    onFocus={e => e.target.select()}
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100 text-right font-mono"
+                                />
+                            </div>
+                            {activeCategory !== 'Phone' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1">الكمية المشتراة (عدد القطع)</label>
+                                    <input 
+                                        type="number" 
+                                        min="1"
+                                        required
+                                        value={quantity}
+                                        onChange={e => setQuantity(e.target.value)}
+                                        onFocus={e => e.target.select()}
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100 text-right font-mono"
+                                    />
+                                </div>
+                            )}
+                            {activeCategory === 'Phone' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1">أرقام الـ IMEI (رقم لكل جهاز في سطر)</label>
+                                    <textarea 
+                                        rows="3"
+                                        required
+                                        value={imeisInput}
+                                        onChange={e => setImeisInput(e.target.value)}
+                                        placeholder="أدخل أرقام التسلسلي هنا"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-550 text-slate-100 font-mono text-xs"
+                                    ></textarea>
+                                </div>
+                            )}
+                            {activeCategory === 'Phone' && selectedBrand === 'Apple' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1">نسبة صحة البطارية (%)</label>
+                                    <input 
+                                        type="number" 
+                                        min="1"
+                                        max="100"
+                                        placeholder="مثال: 85"
+                                        value={batteryHealth}
+                                        onChange={e => setBatteryHealth(e.target.value)}
+                                        onFocus={e => e.target.select()}
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100 text-right font-mono"
+                                    />
+                                </div>
+                            )}
+                            <button 
+                                type="submit"
+                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                            >
+                                <Icon name="plus-circle" className="w-5 h-5" />
+                                <span>حفظ وتنزيل بالمخزن</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Right Column: Products & Stock List */}
+                    <div class="lg:col-span-2 p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <h3 class="font-bold text-lg mb-4 text-emerald-400">البضاعة والمستودع</h3>
+                        
+                        {/* 3 Categories Tab Navigation */}
+                        <div class="flex gap-2 border-b border-slate-800 pb-3 mb-6 overflow-x-auto">
+                            <button 
+                                type="button"
+                                onClick={() => setActiveCategory('Phone')}
+                                class={`px-4 py-2 rounded-xl text-sm transition-all whitespace-nowrap ${activeCategory === 'Phone' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                أجهزة الموبايل
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => setActiveCategory('Accessory')}
+                                class={`px-4 py-2 rounded-xl text-sm transition-all whitespace-nowrap ${activeCategory === 'Accessory' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                الإكسسوارات
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => setActiveCategory('Maintenance')}
+                                class={`px-4 py-2 rounded-xl text-sm transition-all whitespace-nowrap ${activeCategory === 'Maintenance' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                قطع الصيانة
+                            </button>
+                        </div>
+
+                        {/* Search Input Bar */}
+                        <div class="mb-6 relative">
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="البحث باسم الجهاز، الشركة، الأجهزة المتوافقة، أو الـ IMEI..."
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                            />
+                            <div class="absolute right-3 top-3.5 text-slate-500">
+                                <Icon name="search" className="w-4 h-4" />
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            {products
+                                .filter(p => p.type === activeCategory)
+                                .filter(p => 
+                                    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    p.items.some(item => item.imei && item.imei.toLowerCase().includes(searchQuery.toLowerCase()))
+                                )
+                                .map(p => {
+                                    const availableItems = p.items.filter(i => i.status === 'Available');
+                                    return (
+                                        <div key={p.id} class="p-5 bg-slate-950 border border-slate-850 rounded-xl">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h4 class="font-bold text-slate-200 text-base">{p.brand} - {p.name}</h4>
+                                                    <div class="text-xs text-slate-400 mt-1">سعر البيع: {parseFloat(p.selling_price).toFixed(2)} د.إ</div>
+                                                </div>
+                                                <div class="text-left text-xs">
+                                                    <span class={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                                                        p.type === 'Phone' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                        p.type === 'Accessory' ? 'bg-amber-500/10 text-amber-400' : 'bg-orange-500/10 text-orange-400'
+                                                    }`}>
+                                                        {p.type === 'Phone' ? 'موبايل' : p.type === 'Accessory' ? 'إكسسوار' : 'قطعة صيانة'}
+                                                    </span>
+                                                    <div class="text-slate-400 mt-1">المتوفر: {availableItems.length} {p.type === 'Phone' ? 'أجهزة' : 'قطع'}</div>
+                                                </div>
+                                            </div>
+
+                                            {/* IMEIs status */}
+                                            {p.type === 'Phone' && p.items.length > 0 && (
+                                                <div class="mt-3 pt-3 border-t border-slate-900">
+                                                    <div class="flex flex-wrap gap-2">
+                                                        {p.items.map(item => (
+                                                            <span key={item.id} class={`px-2 py-0.5 rounded font-mono text-[10px] border ${
+                                                                item.status === 'Available' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-500 line-through'
+                                                            }`}>
+                                                                {item.imei} {item.battery_health ? `(🔋 ${item.battery_health}%)` : ''} ({item.status === 'Available' ? 'متوفر' : 'مباع'})
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            {products.filter(p => p.type === activeCategory).filter(p => 
+                                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                p.items.some(item => item.imei && item.imei.toLowerCase().includes(searchQuery.toLowerCase()))
+                            ).length === 0 && (
+                                <div class="text-center py-12 text-slate-500 text-sm">لا توجد نتائج بحث مطابقة.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Advanced Accounting Component
+        function AdvancedAccountingPage({ accounts, entries, refresh }) {
+            const [activeSubTab, setActiveSubTab] = useState('chart');
+            const [botToken, setBotToken] = useState('');
+            const [isBotRunning, setIsBotRunning] = useState(false);
+            const [saving, setSaving] = useState(false);
+
+            // Fetch current telegram settings on mount
+            useEffect(() => {
+                const fetchSettings = async () => {
+                    try {
+                        const res = await axios.get('/telegram/settings/');
+                        setBotToken(res.data.token);
+                        setIsBotRunning(res.data.is_running);
+                    } catch (e) {
+                        console.error("Failed to load Telegram Bot settings:", e);
+                    }
+                };
+                fetchSettings();
+            }, []);
+
+            const handleSaveTelegram = async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                try {
+                    const res = await axios.post('/telegram/settings/', { token: botToken });
+                    setIsBotRunning(res.data.is_running);
+                    alert("تم حفظ توكن البوت وتحديث التشغيل بنجاح!");
+                } catch (err) {
+                    alert("حدث خطأ أثناء حفظ توكن البوت.");
+                } finally {
+                    setSaving(false);
+                }
+            };
+
+            return (
+                <div class="space-y-6">
+                    <div class="flex gap-4 border-b border-slate-850 pb-3 overflow-x-auto">
+                        <button 
+                            onClick={() => setActiveSubTab('chart')}
+                            class={`px-4 py-2 rounded-xl transition-all whitespace-nowrap ${activeSubTab === 'chart' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400'}`}
+                        >
+                            دليل الحسابات (Chart of Accounts)
+                        </button>
+                        <button 
+                            onClick={() => setActiveSubTab('journal')}
+                            class={`px-4 py-2 rounded-xl transition-all whitespace-nowrap ${activeSubTab === 'journal' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400'}`}
+                        >
+                            سجل القيود اليومية (Manual Entries & Logs)
+                        </button>
+                        <button 
+                            onClick={() => setActiveSubTab('telegram')}
+                            class={`px-4 py-2 rounded-xl transition-all whitespace-nowrap ${activeSubTab === 'telegram' ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400'}`}
+                        >
+                            بوت التليجرام (Telegram Bot)
+                        </button>
+                    </div>
+
+                    {activeSubTab === 'chart' && (
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-6 text-emerald-400">شجرة ودليل الحسابات الدفترية</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-right border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-850 text-slate-400 text-sm">
+                                            <th class="pb-3 pr-4">رمز الحساب</th>
+                                            <th class="pb-3">الاسم</th>
+                                            <th class="pb-3">النوع</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800/50">
+                                        {accounts.map(acc => (
+                                            <tr key={acc.id} class="hover:bg-slate-800/30 text-slate-200 text-sm">
+                                                <td class="py-4 pr-4 font-mono text-emerald-400 font-semibold">{acc.code}</td>
+                                                <td class="py-4">{acc.name}</td>
+                                                <td class="py-4">
+                                                    <span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300">
+                                                        {acc.type}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSubTab === 'journal' && (
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                            <h3 class="font-bold text-lg mb-6 text-emerald-400">سجل القيود اليومية والدفتر العام</h3>
+                            <div class="space-y-4">
+                                {entries.map(entry => (
+                                    <div key={entry.id} class="p-4 bg-slate-950 border border-slate-850 rounded-xl">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <div class="font-bold text-sm text-slate-200">{entry.description}</div>
+                                                <div class="text-xs text-slate-400">المرجع: {entry.reference} | التاريخ: {new Date(entry.entry_date).toLocaleDateString('ar-EG')}</div>
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-xs">{entry.state}</span>
+                                        </div>
+                                        <table class="w-full text-right text-xs">
+                                            <thead>
+                                                <tr class="text-slate-500 border-b border-slate-900">
+                                                    <th>الحساب</th>
+                                                    <th>مدين</th>
+                                                    <th>دائن</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {entry.items.map(item => {
+                                                    const acc = accounts.find(a => a.id === item.account_id);
+                                                    return (
+                                                        <tr key={item.id} class="text-slate-400">
+                                                            <td class="py-1">{acc ? acc.name : 'غير معروف'}</td>
+                                                            <td class="py-1 font-mono text-emerald-500">{parseFloat(item.debit) > 0 ? parseFloat(item.debit).toFixed(2) : '-'}</td>
+                                                            <td class="py-1 font-mono text-rose-500">{parseFloat(item.credit) > 0 ? parseFloat(item.credit).toFixed(2) : '-'}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSubTab === 'telegram' && (
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl max-w-xl">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                                    <Icon name="send" className="w-5 h-5 text-sky-400" />
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-sky-400">ربط وتفعيل بوت التليجرام</h3>
+                                    <p class="text-xs text-slate-400">للبحث والاستعلام الفوري عن قطع الصيانة المتوفرة بالمخزن</p>
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleSaveTelegram} class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-2">توكن البوت (API Token)</label>
+                                    <input 
+                                        type="text"
+                                        required
+                                        value={botToken}
+                                        onChange={e => setBotToken(e.target.value)}
+                                        placeholder="مثال: 123456789:ABCdefGhIJKlmNoPQRsT..."
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500 text-slate-100 font-mono text-sm"
+                                    />
+                                </div>
+
+                                <div class="p-4 bg-slate-950/50 rounded-xl border border-slate-850 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs text-slate-400 block">حالة البوت الحالية</span>
+                                        <span class={`text-sm font-bold ${isBotRunning ? 'text-emerald-400' : 'text-rose-500'}`}>
+                                            {isBotRunning ? '🟢 متصل ويعمل بنجاح' : '🔴 متوقف (يرجى إدخال توكن صالح)'}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        type="submit"
+                                        disabled={saving}
+                                        class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-md text-sm"
+                                    >
+                                        {saving ? 'جاري التشغيل...' : 'حفظ وتشغيل البوت'}
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="mt-6 p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2 text-xs text-slate-400 leading-relaxed">
+                                <h4 class="font-bold text-slate-200">💡 كيف تصنع وتفعل البوت؟</h4>
+                                <ol class="list-decimal list-inside space-y-1">
+                                    <li>ابحث في تطبيق التليجرام عن المعرف الرسمي: <a href="https://t.me/BotFather" target="_blank" class="text-sky-400 underline">@BotFather</a></li>
+                                    <li>أرسل له الأمر <code class="bg-slate-900 px-1 py-0.5 rounded text-sky-300">/newbot</code> ثم اختر اسماً ومعرفاً للبوت الخاص بك.</li>
+                                    <li>انسخ التوكن الطويل (Token) الذي سيعطيك إياه، وضعه في الحقل أعلاه واضغط على **"حفظ وتشغيل البوت"**.</li>
+                                    <li>الآن، افتح البوت الخاص بك على التليجرام واضغط **Start**، ثم اكتب أي كلمة (مثال: شاشة) للبحث فوراً في مخزنك!</li>
+                                </ol>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Settings Field - must be outside ShopSettingsPage to avoid remount on every render
+        function SettingsField({ label, id, value, onChange, placeholder }) {
+            return (
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1.5">{label}</label>
+                    <input
+                        type="text"
+                        id={id}
+                        value={value}
+                        onChange={e => onChange(e.target.value)}
+                        placeholder={placeholder}
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                </div>
+            );
+        }
+
+        // Shop Settings Page
+        function ShopSettingsPage() {
+            const defaultSettings = {
+                shopName: 'متجر الموبايل',
+                currency: 'د.ع',
+                phone: '',
+                email: '',
+                address: '',
+                footerNote: 'شكراً لتعاملكم معنا 🙏'
+            };
+
+            const [settings, setSettings] = useState(() => {
+                try {
+                    return { ...defaultSettings, ...JSON.parse(localStorage.getItem('shopSettings') || '{}') };
+                } catch { return defaultSettings; }
+            });
+            const [saved, setSaved] = useState(false);
+
+            const handleChange = (key, value) => {
+                setSettings(prev => ({ ...prev, [key]: value }));
+                setSaved(false);
+            };
+
+            const handleSave = (e) => {
+                e.preventDefault();
+                localStorage.setItem('shopSettings', JSON.stringify(settings));
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+            };
+
+            return (
+                <div class="max-w-2xl space-y-8">
+
+                    {/* Shop Identity */}
+                    <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                <Icon name="store" className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-emerald-400">هوية المتجر</h3>
+                                <p class="text-xs text-slate-500">تظهر هذه المعلومات في رأس الفاتورة</p>
+                            </div>
+                        </div>
+                        <form onSubmit={handleSave} class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <SettingsField label="اسم المتجر" id="shopName" value={settings.shopName} onChange={v => handleChange('shopName', v)} placeholder="متجر الموبايل" />
+                                <SettingsField label="العملة" id="currency" value={settings.currency} onChange={v => handleChange('currency', v)} placeholder="د.ع" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <SettingsField label="رقم الهاتف / الواتساب" id="phone" value={settings.phone} onChange={v => handleChange('phone', v)} placeholder="07xxxxxxxxx" />
+                                <SettingsField label="البريد الإلكتروني" id="email" value={settings.email} onChange={v => handleChange('email', v)} placeholder="example@email.com" />
+                            </div>
+                            <SettingsField label="العنوان / الموقع" id="address" value={settings.address} onChange={v => handleChange('address', v)} placeholder="بغداد - الكرادة - ..." />
+                            <SettingsField label="نص ختام الفاتورة" id="footerNote" value={settings.footerNote} onChange={v => handleChange('footerNote', v)} placeholder="شكراً لتعاملكم معنا 🙏" />
+
+                            <div class="pt-2 flex items-center gap-4">
+                                <button
+                                    type="submit"
+                                    class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20"
+                                >
+                                    حفظ الإعدادات
+                                </button>
+                                {saved && (
+                                    <span class="text-emerald-400 text-sm font-bold flex items-center gap-1">
+                                        <Icon name="check-circle" className="w-4 h-4" /> تم الحفظ بنجاح!
+                                    </span>
+                                )}
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Live Invoice Preview */}
+                    <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                                <Icon name="eye" className="w-5 h-5 text-sky-400" />
+                            </div>
+                            <h3 class="font-bold text-sky-400">معاينة رأس الفاتورة</h3>
+                        </div>
+                        <div style={{background:'#064e3b', borderRadius:'12px', padding:'20px 24px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                            <div style={{textAlign:'left', color:'rgba(255,255,255,0.6)', fontSize:'12px', lineHeight:'2'}}>
+                                {settings.phone && <div>📞 {settings.phone}</div>}
+                                {settings.email && <div>✉ {settings.email}</div>}
+                                {settings.address && <div>📍 {settings.address}</div>}
+                                {!settings.phone && !settings.email && !settings.address && (
+                                    <div style={{color:'rgba(255,255,255,0.3)'}}>أضف معلومات الاتصال</div>
+                                )}
+                            </div>
+                            <div style={{textAlign:'right'}}>
+                                <div style={{fontSize:'22px', fontWeight:'900', color:'#fff'}}>{settings.shopName || 'اسم المتجر'}</div>
+                                <div style={{fontSize:'11px', color:'rgba(255,255,255,0.6)', marginTop:'2px'}}>فاتورة مبيعات / Sales Invoice</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
+        // Render application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

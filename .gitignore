@@ -1,0 +1,26 @@
+# Python virtual environment
+venv/
+.venv/
+ENV/
+env/
+
+# Databases (SQLite)
+*.db
+*.db-journal
+*.sqlite3
+
+# Python cache / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environment files / Secrets
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
