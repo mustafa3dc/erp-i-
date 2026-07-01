@@ -1516,34 +1516,61 @@
                     return;
                 }
 
-                // If maintenance, append compatible device to name
-                let finalName = name.trim();
-                if (activeCategory === 'Maintenance' && compatibleDevice.trim()) {
-                    finalName = `${finalName} (${compatibleDevice.trim()})`;
-                }
-
-                const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
-
                 try {
-                    await axios.post('/products/', {
-                        name: finalName,
-                        brand: finalBrand,
-                        type: activeCategory, // Locked to active tab category
-                        purchase_price: parseFloat(purchasePrice) || 0,
-                        selling_price: parseFloat(sellingPrice) || 0,
-                        imeis: activeCategory === 'Phone' ? imeis : null,
-                        quantity: activeCategory === 'Phone' ? 1 : parseInt(quantity) || 1,
-                        battery_health: (activeCategory === 'Phone' && selectedBrand === 'Apple' && batteryHealth) ? parseInt(batteryHealth) : null
-                    });
-                    setName('');
-                    setCompatibleDevice('');
+                    if (activeCategory === 'Maintenance') {
+                        const partNames = Object.keys(selectedParts);
+                        if (partNames.length === 0) {
+                            setErrorMsg("يرجى اختيار قطعة صيانة واحدة على الأقل وتعبئة معلوماتها.");
+                            return;
+                        }
+                        if (!compatibleDevice.trim()) {
+                            setErrorMsg("يرجى كتابة موديل الجهاز المتوافق.");
+                            return;
+                        }
+
+                        for (const partName of partNames) {
+                            const pData = selectedParts[partName];
+                            const finalName = `${partName} (${compatibleDevice.trim()})`;
+                            await axios.post('/products/', {
+                                name: finalName,
+                                brand: finalBrand,
+                                type: 'Maintenance',
+                                purchase_price: parseFloat(pData.purchasePrice) || 0,
+                                selling_price: parseFloat(pData.sellingPrice) || 0,
+                                imeis: null,
+                                quantity: parseInt(pData.quantity) || 1,
+                                battery_health: null
+                            });
+                        }
+                        
+                        setSelectedParts({});
+                        setCompatibleDevice('');
+                    } else {
+                        let finalName = name.trim();
+                        const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+
+                        await axios.post('/products/', {
+                            name: finalName,
+                            brand: finalBrand,
+                            type: activeCategory,
+                            purchase_price: parseFloat(purchasePrice) || 0,
+                            selling_price: parseFloat(sellingPrice) || 0,
+                            imeis: activeCategory === 'Phone' ? imeis : null,
+                            quantity: activeCategory === 'Phone' ? 1 : parseInt(quantity) || 1,
+                            battery_health: (activeCategory === 'Phone' && selectedBrand === 'Apple' && batteryHealth) ? parseInt(batteryHealth) : null
+                        });
+                        
+                        setName('');
+                        setPurchasePrice('');
+                        setSellingPrice('');
+                        setImeisInput('');
+                        setQuantity('1');
+                        setBatteryHealth('');
+                    }
+                    
                     setCustomBrand('');
-                    setPurchasePrice('');
-                    setSellingPrice('');
-                    setImeisInput('');
-                    setQuantity('1');
-                    setBatteryHealth('');
                     refresh();
+                    alert("تم حفظ وتنزيل المواد بالمخزن بنجاح! 🎉");
                 } catch (err) {
                     setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء إضافة البضاعة.");
                 }
