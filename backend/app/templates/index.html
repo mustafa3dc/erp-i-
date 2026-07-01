@@ -260,40 +260,102 @@
             if (isLocked) {
                 const s = getShopSettings();
                 const shopName = s.shopName || 'متجر الموبايل';
+                
+                // Auto unlock when PIN matches correct settings code
+                const handlePinClick = (num) => {
+                    setLoginError('');
+                    if (passwordInput.length < 6) {
+                        const newPin = passwordInput + num;
+                        setPasswordInput(newPin);
+                        
+                        const correctPassword = s.systemPassword || '123456';
+                        if (newPin === correctPassword) {
+                            sessionStorage.setItem('isUnlocked', 'true');
+                            setIsLocked(false);
+                            setPasswordInput('');
+                        } else if (newPin.length === 6) {
+                            setTimeout(() => {
+                                setLoginError('الرمز السري غير صحيح!');
+                                setPasswordInput('');
+                            }, 300);
+                        }
+                    }
+                };
+
+                const handleBackspace = () => {
+                    setPasswordInput(passwordInput.slice(0, -1));
+                };
+
+                const handleClear = () => {
+                    setPasswordInput('');
+                };
+
                 return (
                     <div class="flex items-center justify-center h-screen bg-slate-950">
-                        <div class="w-full max-w-md p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-center space-y-6">
+                        <div class="w-full max-w-sm p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl text-center space-y-8 backdrop-blur-md">
+                            {/* Head */}
                             <div class="flex flex-col items-center justify-center gap-3">
-                                <div class="w-16 h-16 rounded-3xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/30">
-                                    <Icon name="lock" className="w-8 h-8 text-white animate-pulse" />
+                                <div class="w-14 h-14 rounded-2xl bg-brand-500/10 flex items-center justify-center">
+                                    <Icon name="shield-alert" className="w-7 h-7 text-brand-600 animate-bounce" />
                                 </div>
-                                <h1 class="text-2xl font-extrabold text-slate-100">{shopName}</h1>
-                                <p class="text-xs text-slate-400 font-bold">يرجى إدخال رمز قفل النظام للمتابعة</p>
+                                <h1 class="text-xl font-extrabold text-slate-100">{shopName}</h1>
+                                <p class="text-xs text-slate-450 font-bold">يرجى إدخال رمز قفل النظام للمتابعة</p>
                             </div>
-                            
-                            <form onSubmit={handleUnlock} class="space-y-4">
-                                {loginError && (
-                                    <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold rounded-xl">
-                                        {loginError}
-                                    </div>
-                                )}
-                                <div>
-                                    <input 
-                                        type="password" 
-                                        value={passwordInput} 
-                                        onChange={e => setPasswordInput(toEnglishDigits(e.target.value).replace(/[^0-9a-zA-Z]/g, ''))}
-                                        placeholder="أدخل رمز الدخول (الافتراضي: 123456)" 
-                                        class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-4 py-3 text-center font-mono text-lg tracking-widest text-slate-100 focus:outline-none transition-all"
-                                        autoFocus
+
+                            {/* Dots Indicator */}
+                            <div class="flex justify-center items-center gap-4 py-2">
+                                {[0, 1, 2, 3, 4, 5].map(idx => (
+                                    <div 
+                                        key={idx}
+                                        class={`w-4.5 h-4.5 rounded-full border-2 transition-all duration-150 ${
+                                            idx < passwordInput.length 
+                                            ? 'bg-brand-600 border-brand-600 scale-110 shadow-lg shadow-brand-600/30' 
+                                            : 'border-slate-800 bg-transparent'
+                                        }`}
                                     />
+                                ))}
+                            </div>
+
+                            {loginError && (
+                                <div class="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold rounded-xl">
+                                    {loginError}
                                 </div>
-                                <button 
-                                    type="submit" 
-                                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-600/20 text-sm"
+                            )}
+
+                            {/* Pinpad Grid */}
+                            <div class="grid grid-cols-3 gap-4 max-w-[240px] mx-auto">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                    <button
+                                        type="button"
+                                        key={num}
+                                        onClick={() => handlePinClick(num.toString())}
+                                        class="w-14 h-14 rounded-full bg-slate-950 hover:bg-slate-850 border border-slate-800 flex items-center justify-center text-lg font-extrabold text-slate-200 transition-all active:scale-90 shadow-sm"
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={handleClear}
+                                    class="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold text-slate-500 hover:text-slate-200 transition-colors"
                                 >
-                                    فتح النظام
+                                    مسح
                                 </button>
-                            </form>
+                                <button
+                                    type="button"
+                                    onClick={() => handlePinClick('0')}
+                                    class="w-14 h-14 rounded-full bg-slate-950 hover:bg-slate-850 border border-slate-800 flex items-center justify-center text-lg font-extrabold text-slate-200 transition-all active:scale-90 shadow-sm"
+                                >
+                                    0
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleBackspace}
+                                    class="w-14 h-14 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-colors active:scale-90"
+                                >
+                                    <Icon name="delete" className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 );
