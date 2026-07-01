@@ -1500,7 +1500,27 @@
 
                             {activeCategory === 'Maintenance' && (
                                 <div>
-                                    <label class="block text-sm text-slate-400 mb-1.5">نوع قطعة الصيانة (اختيار سريع) *</label>
+                                    <label class="block text-sm text-slate-400 mb-1">موديل الجهاز المتوافق *</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        value={compatibleDevice}
+                                        onChange={e => setCompatibleDevice(e.target.value)}
+                                        list="inventory-device-models"
+                                        placeholder="مثال: iPhone 11"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
+                                    />
+                                    <datalist id="inventory-device-models">
+                                        {(BRAND_MODELS[selectedBrand] || []).map(m => (
+                                            <option key={m} value={m} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                            )}
+
+                            {activeCategory === 'Maintenance' && (
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-1.5 font-bold text-sky-400">نوع قطعة الصيانة (اختيار سريع) *</label>
                                     <div class="flex flex-wrap gap-1.5 mb-1.5">
                                         {["شاشة", "بطارية", "كفر خلفي", "منفذ شحن", "كاميرا خلفية", "كاميرا أمامية", "فلاتة شحن", "سماعة"].map(partType => (
                                             <button
@@ -1538,25 +1558,14 @@
                                     }
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
                                 />
-                                <datalist id="inventory-device-models">
-                                    {(BRAND_MODELS[selectedBrand] || []).map(m => (
-                                        <option key={m} value={m} />
-                                    ))}
-                                </datalist>
+                                {activeCategory === 'Phone' && (
+                                    <datalist id="inventory-device-models">
+                                        {(BRAND_MODELS[selectedBrand] || []).map(m => (
+                                            <option key={m} value={m} />
+                                        ))}
+                                    </datalist>
+                                )}
                             </div>
-                            {activeCategory === 'Maintenance' && (
-                                <div>
-                                    <label class="block text-sm text-slate-400 mb-1">الأجهزة المتوافقة (يمكنك كتابة عدة أجهزة)</label>
-                                    <input 
-                                        type="text" 
-                                        value={compatibleDevice}
-                                        onChange={e => setCompatibleDevice(e.target.value)}
-                                        list="inventory-device-models"
-                                        placeholder="مثال: Galaxy A13, A04s, M13 (أو افصل بينها بـ /)"
-                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
-                                    />
-                                </div>
-                            )}
                             <div>
                                 <label class="block text-sm text-slate-400 mb-1">سعر الشراء (التكلفة للقطعة)</label>
                                 <input 
