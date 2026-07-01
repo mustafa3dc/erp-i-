@@ -1409,6 +1409,8 @@
             const [quantity, setQuantity] = useState('1');
             const [batteryHealth, setBatteryHealth] = useState('');
             const [showSoldItems, setShowSoldItems] = useState(false);
+            const [purchaseList, setPurchaseList] = useState([]);
+            const [isSavingList, setIsSavingList] = useState(false);
 
             const defaultPhoneBrands = ["Apple", "Samsung", "Xiaomi", "Huawei", "Realme", "Infinix", "Honor", "Oppo"];
             const defaultAccessoryBrands = ["Anker", "Joyroom", "LDNIO", "Baseus", "Remax", "Yesido", "Hoco", "Oraimo", "Apple", "Samsung", "Xiaomi", "Green Lion", "McDodo", "Awei", "G-Tab", "Pavareal"];
@@ -1431,6 +1433,76 @@
                     setSelectedBrand('Apple');
                 }
             }, [activeCategory]);
+
+            const handleAddToList = (e) => {
+                e.preventDefault();
+                setErrorMsg('');
+                
+                const finalBrand = selectedBrand === 'أخرى' ? customBrand.trim() : selectedBrand;
+                if (!finalBrand) {
+                    setErrorMsg("يرجى تحديد أو كتابة اسم الشركة المصنعة.");
+                    return;
+                }
+
+                let finalName = name.trim();
+                if (activeCategory === 'Maintenance' && compatibleDevice.trim()) {
+                    finalName = `${finalName} (${compatibleDevice.trim()})`;
+                }
+
+                const imeis = imeisInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+
+                const newItem = {
+                    name: finalName,
+                    brand: finalBrand,
+                    type: activeCategory,
+                    purchase_price: parseFloat(purchasePrice) || 0,
+                    selling_price: parseFloat(sellingPrice) || 0,
+                    imeis: activeCategory === 'Phone' ? imeis : null,
+                    quantity: activeCategory === 'Phone' ? 1 : parseInt(quantity) || 1,
+                    battery_health: (activeCategory === 'Phone' && selectedBrand === 'Apple' && batteryHealth) ? parseInt(batteryHealth) : null,
+                    displayName: name.trim(),
+                    displayDevice: compatibleDevice.trim()
+                };
+
+                setPurchaseList([...purchaseList, newItem]);
+
+                // Reset only specific fields to allow quick adding for same device/brand
+                setName('');
+                setPurchasePrice('');
+                setSellingPrice('');
+                setImeisInput('');
+                setQuantity('1');
+                setBatteryHealth('');
+            };
+
+            const handleSaveEntireList = async () => {
+                if (purchaseList.length === 0) return;
+                setIsSavingList(true);
+                setErrorMsg('');
+                try {
+                    for (const item of purchaseList) {
+                        await axios.post('/products/', {
+                            name: item.name,
+                            brand: item.brand,
+                            type: item.type,
+                            purchase_price: item.purchase_price,
+                            selling_price: item.selling_price,
+                            imeis: item.imeis,
+                            quantity: item.quantity,
+                            battery_health: item.battery_health
+                        });
+                    }
+                    setPurchaseList([]);
+                    setCompatibleDevice('');
+                    setCustomBrand('');
+                    refresh();
+                    alert("تم تنزيل قائمة المواد بالكامل إلى المخزن بنجاح! 🎉");
+                } catch (err) {
+                    setErrorMsg("حدث خطأ أثناء تنزيل بعض المواد. يرجى المحاولة مرة أخرى.");
+                } finally {
+                    setIsSavingList(false);
+                }
+            };
 
             const handleCreateProduct = async (e) => {
                 e.preventDefault();
@@ -1478,7 +1550,8 @@
             return (
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Form dynamically adapted to the active tab */}
-                    <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl h-fit">
+                    <div class="space-y-6">
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl h-fit">
                         <h3 class="font-bold text-lg mb-6 text-emerald-400">
                             {activeCategory === 'Phone' && "شراء وتنزيل أجهزة موبايل"}
                             {activeCategory === 'Accessory' && "شراء وتنزيل إكسسوارات"}
@@ -1660,15 +1733,68 @@
                                     />
                                 </div>
                             )}
-                            <button 
-                                type="submit"
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
-                            >
-                                <Icon name="plus-circle" className="w-5 h-5" />
-                                <span>حفظ وتنزيل بالمخزن</span>
-                            </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button 
+                                    type="button"
+                                    onClick={handleAddToList}
+                                    class="bg-slate-950 hover:bg-slate-850 text-slate-200 border border-slate-800 font-bold py-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 shadow-md"
+                                >
+                                    <Icon name="plus-circle" className="w-4 h-4 text-emerald-400" />
+                                    <span>إضافة للقائمة</span>
+                                </button>
+                                <button 
+                                    type="submit"
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5 shadow-md"
+                                >
+                                    <Icon name="zap" className="w-4 h-4 text-white" />
+                                    <span>تنزيل مباشر</span>
+                                </button>
+                            </div>
                         </form>
                     </div>
+
+                    {/* Temporary Purchase List Card */}
+                    {purchaseList.length > 0 && (
+                        <div class="p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-xs text-emerald-400 flex items-center gap-1.5">
+                                    📋 قائمة تنزيل البضاعة المؤقتة ({purchaseList.length})
+                                </h4>
+                                <button onClick={() => setPurchaseList([])} class="text-[10px] text-rose-400 hover:text-rose-300 transition-colors">
+                                    إلغاء الكل
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                {purchaseList.map((item, idx) => (
+                                    <div key={idx} class="p-2.5 bg-slate-950 border border-slate-850 rounded-xl flex justify-between items-center text-xs">
+                                        <div class="space-y-0.5">
+                                            <div class="font-bold text-slate-200">{item.brand} - {item.displayName}</div>
+                                            {item.displayDevice && <div class="text-[10px] text-slate-500">لجهاز: {item.displayDevice}</div>}
+                                            <div class="text-[10px] text-slate-400 font-mono">العدد: {item.quantity} | التكلفة للقطعة: {item.purchase_price.toLocaleString()} د.ع</div>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setPurchaseList(purchaseList.filter((_, i) => i !== idx))} 
+                                            class="p-1 text-slate-500 hover:text-rose-400 transition-colors text-xs"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleSaveEntireList}
+                                disabled={isSavingList}
+                                class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-850 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
+                            >
+                                {isSavingList ? 'جاري تنزيل وتثبيت المواد...' : `تنزيل المواد المضافة (${purchaseList.length}) للمخزن`}
+                            </button>
+                        </div>
+                    )}
+                </div>
 
                     {/* Right Column: Products & Stock List */}
                     <div class="lg:col-span-2 p-6 bg-slate-900 border border-slate-800 rounded-2xl">
