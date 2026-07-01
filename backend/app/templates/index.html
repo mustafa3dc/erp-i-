@@ -415,12 +415,26 @@
             const [maintenanceNote, setMaintenanceNote] = useState('');
             const [warrantyDays, setWarrantyDays] = useState('30');
             const [customerPhone, setCustomerPhone] = useState('');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [posFilter, setPosFilter] = useState('All');
 
             const printReceipt = () => {
                 window.print();
             };
             
-            const availableProducts = products.filter(p => p.type !== 'Phone' || p.items.some(i => i.status === 'Available'));
+            const filteredProducts = products.filter(p => {
+                const isAvailable = p.type !== 'Phone' || p.items.some(i => i.status === 'Available');
+                if (!isAvailable) return false;
+                
+                // Search query match
+                const query = searchQuery.toLowerCase();
+                const matchesSearch = p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query);
+                
+                // Category match
+                if (posFilter === 'All') return matchesSearch;
+                return p.type === posFilter && matchesSearch;
+            });
+
 
             const addToCart = (product) => {
                 let selectedItemId = null;
@@ -494,85 +508,100 @@
                         items: [...cart],
                         total: total,
                         maintenanceNote: maintenanceNote,
-                        warrantyDays: warrantyDays
-                    });
-                    setCustomerName('');
-                    setCustomerPhone('');
-                    setPaymentMethod('Cash');
-                    setMaintenanceNote('');
-                    setWarrantyDays('30');
-                    setCart([]);
-                    refresh();
-                } catch (err) {
-                    setErrorMsg(err.response?.data?.detail || "حدث خطأ أثناء إتمام عملية البيع.");
-                }
-            };
-
-            return (
+                       return (
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div class="lg:col-span-7 p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between min-h-[500px]">
+                    {/* Left: Cart & Billing Panel */}
+                    <div class="lg:col-span-7 p-6 bg-slate-900/60 border border-slate-800 rounded-3xl flex flex-col justify-between min-h-[550px] shadow-2xl backdrop-blur-md">
                         <div>
-                            <h3 class="font-bold text-lg mb-6 text-emerald-400">فاتورة البيع الحالية</h3>
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-bold text-lg text-emerald-400 flex items-center gap-2">
+                                    <Icon name="shopping-cart" className="w-5 h-5 text-emerald-400" />
+                                    فاتورة البيع الحالية
+                                </h3>
+                                {cart.length > 0 && (
+                                    <button onClick={() => setCart([])} class="text-xs text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1">
+                                        <Icon name="trash" className="w-3.5 h-3.5" /> مسح الكل
+                                    </button>
+                                )}
+                            </div>
+
                             {errorMsg && (
-                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl mb-4">
-                                    {errorMsg}
+                                <div class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-2xl mb-4 flex items-center gap-2">
+                                    <Icon name="alert-triangle" className="w-4 h-4" /> {errorMsg}
                                 </div>
                             )}
 
-                            <div class="space-y-3 mb-6">
+                            <div class="space-y-3 mb-6 max-h-[360px] overflow-y-auto pr-1">
                                 {cart.map((item, index) => (
-                                    <div key={index} class="p-4 bg-slate-950 border border-slate-850 rounded-xl flex justify-between items-center">
-                                        <div class="flex-1 pr-2">
-                                            <div class="font-bold text-sm text-slate-200">{item.brand} - {item.name}</div>
+                                    <div key={index} class="p-4 bg-slate-950/60 border border-slate-850 hover:border-slate-800 rounded-2xl flex justify-between items-center transition-all">
+                                        <div class="flex-1 pr-3">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">#{index + 1}</span>
+                                                <div class="font-bold text-sm text-slate-100">{item.brand} - {item.name}</div>
+                                            </div>
                                             {item.type === 'Phone' && (
-                                                <div class="text-[10px] text-emerald-400 font-mono mt-1">
-                                                    IMEI: {item.imei} {item.battery_health ? `| بطارية: ${item.battery_health}%` : ''}
+                                                <div class="text-[11px] text-emerald-400 font-mono mt-1.5 flex items-center gap-1.5 bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded-lg w-max">
+                                                    <Icon name="smartphone" className="w-3 h-3" /> IMEI: {item.imei} {item.battery_health ? `| Health: ${item.battery_health}%` : ''}
+                                                </div>
+                                            )}
+                                            {item.type === 'Maintenance' && (
+                                                <div class="text-[11px] text-amber-400 font-mono mt-1.5 flex items-center gap-1.5 bg-amber-500/5 border border-amber-500/10 px-2 py-0.5 rounded-lg w-max">
+                                                    <Icon name="wrench" className="w-3 h-3" /> صيانة / خدمة
                                                 </div>
                                             )}
                                         </div>
-                                        <div class="flex items-center gap-4">
-                                            <input 
-                                                type="number" 
-                                                step="0.01"
-                                                value={item.price}
-                                                onChange={e => updateCartPrice(index, e.target.value)}
-                                                onFocus={e => e.target.select()}
-                                                class="w-44 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1 text-right font-mono text-emerald-400 text-sm focus:outline-none"
-                                            />
+                                        <div class="flex items-center gap-3">
+                                            <div class="relative">
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    value={item.price}
+                                                    onChange={e => updateCartPrice(index, e.target.value)}
+                                                    onFocus={e => e.target.select()}
+                                                    class="w-36 bg-slate-900/80 border border-slate-800 focus:border-emerald-500 rounded-xl pl-3 pr-8 py-2 text-right font-mono text-emerald-400 font-bold text-sm focus:outline-none transition-all"
+                                                />
+                                                <span class="absolute right-3 top-2.5 text-[10px] text-slate-500 font-bold">د.ع</span>
+                                            </div>
                                             <button 
                                                 type="button" 
                                                 onClick={() => removeFromCart(index)}
-                                                class="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg"
+                                                class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-xl transition-all"
                                             >
-                                                <Icon name="trash" className="w-4 h-4" />
+                                                <Icon name="trash-2" className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                                 {cart.length === 0 && (
-                                    <div class="text-center py-12 text-slate-500">الفاتورة فارغة. اختر من قائمة المنتجات لإضافة الأجهزة.</div>
+                                    <div class="text-center py-16 text-slate-500 flex flex-col items-center justify-center gap-3">
+                                        <Icon name="shopping-bag" className="w-10 h-10 text-slate-700" />
+                                        <div class="text-sm">الفاتورة فارغة. اختر من قائمة المنتجات لإضافة الأجهزة.</div>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        <div class="border-t border-slate-800 pt-6 mt-6 space-y-4">
+                        <div class="border-t border-slate-800/80 pt-6 mt-6 space-y-5">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs text-slate-400 mb-1">اسم الزبون (اختياري)</label>
-                                    <input 
-                                        type="text" 
-                                        value={customerName}
-                                        onChange={e => setCustomerName(e.target.value)}
-                                        placeholder="مثال: مصطفى علي"
-                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
-                                    />
+                                    <label class="block text-xs text-slate-400 mb-1.5 font-bold">اسم الزبون (اختياري)</label>
+                                    <div class="relative">
+                                        <input 
+                                            type="text" 
+                                            value={customerName}
+                                            onChange={e => setCustomerName(e.target.value)}
+                                            placeholder="مثال: مصطفى علي"
+                                            class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-200 focus:outline-none transition-all"
+                                        />
+                                        <Icon name="user" className="w-4 h-4 text-slate-500 absolute right-3.5 top-3" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-slate-400 mb-1">طريقة الدفع</label>
+                                    <label class="block text-xs text-slate-400 mb-1.5 font-bold">طريقة الدفع</label>
                                     <select 
                                         value={paymentMethod}
                                         onChange={e => setPaymentMethod(e.target.value)}
-                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none"
+                                        class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none transition-all"
                                     >
                                         <option value="Cash">نقدي (Cash)</option>
                                         <option value="Credit">آجل / بالدين (Credit)</option>
@@ -582,36 +611,36 @@
 
                             {/* Extra maintenance fields */}
                             {isMaintenanceCart && (
-                                <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-3">
-                                    <div class="text-xs font-bold text-amber-400 mb-2 flex items-center gap-2">
-                                        <Icon name="wrench" className="w-4 h-4" /> حقول فاتورة الصيانة
+                                <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl space-y-4 shadow-inner">
+                                    <div class="text-xs font-bold text-amber-400 flex items-center gap-2">
+                                        <Icon name="wrench" className="w-4 h-4 text-amber-400" /> حقول وتفاصيل الصيانة
                                     </div>
                                     <div class="grid grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-xs text-slate-400 mb-1">رقم هاتف الزبون</label>
-                                            <input type="text" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="07xxxxxxxxx" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none" />
+                                            <input type="text" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="07xxxxxxxxx" class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none transition-all" />
                                         </div>
                                         <div>
                                             <label class="block text-xs text-slate-400 mb-1">مدة الضمان (أيام)</label>
-                                            <input type="number" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none" />
+                                            <input type="number" value={warrantyDays} onChange={e => setWarrantyDays(e.target.value)} class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none transition-all" />
                                         </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-slate-400 mb-1">وصف العطل / الخدمة المنجزة</label>
-                                        <textarea rows="2" value={maintenanceNote} onChange={e => setMaintenanceNote(e.target.value)} placeholder="مثال: تغيير شاشة مكسورة — تم تركيب شاشة أصلية" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none resize-none" />
+                                        <textarea rows="2" value={maintenanceNote} onChange={e => setMaintenanceNote(e.target.value)} placeholder="مثال: تغيير شاشة مكسورة — تم تركيب شاشة أصلية" class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none resize-none transition-all" />
                                     </div>
                                 </div>
                             )}
 
-                            <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-850">
+                            <div class="flex justify-between items-center bg-slate-950/80 p-5 rounded-2xl border border-slate-850/80">
                                 <div>
-                                    <span class="text-slate-400 text-xs block">الإجمالي المستحق</span>
-                                    <span class="text-2xl font-bold text-emerald-400">{total.toFixed(2)} د.إ</span>
+                                    <span class="text-slate-500 text-xs block font-bold mb-1">الإجمالي المستحق</span>
+                                    <span class="text-3xl font-extrabold text-emerald-400 font-mono">{total.toLocaleString()} <span class="text-xs font-bold text-slate-400">د.ع</span></span>
                                 </div>
                                 <button 
                                     onClick={handleCheckout}
                                     disabled={cart.length === 0}
-                                    class={`flex items-center gap-2 px-8 py-3.5 font-bold rounded-xl shadow-lg transition-all ${
+                                    class={`flex items-center gap-2 px-8 py-3.5 font-bold rounded-2xl shadow-lg transition-all ${
                                         cart.length > 0 
                                         ? (isMaintenanceCart ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20')
                                         : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
@@ -624,145 +653,80 @@
                         </div>
                     </div>
 
-                    {/* Receipt Modal */}
-                    {receipt && (() => {
-                        const s = getShopSettings();
-                        const shopName = s.shopName || 'متجر الموبايل';
-                        const currency = s.currency || 'د.ع';
-                        const phone = s.phone || '';
-                        const email = s.email || '';
-                        const address = s.address || '';
-                        const footerNote = s.footerNote || 'شكراً لتعاملكم معنا 🙏';
-                        const invoiceNum = 'INV-' + Date.now().toString().slice(-6);
-                        return (
-                        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
-                            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                                <div id="print-receipt">
-                                    <div class="inv">
-                                        {/* Head: INVOICE + Logo */}
-                                        <div class="inv-head">
-                                            <div class="inv-head-title">INVOICE</div>
-                                            <div class="inv-head-logo">LOGO</div>
-                                        </div>
+                    {/* Right: Products List Panel */}
+                    <div class="lg:col-span-5 p-6 bg-slate-900/60 border border-slate-800 rounded-3xl flex flex-col shadow-2xl backdrop-blur-md">
+                        <h3 class="font-bold text-lg mb-4 text-emerald-400 flex items-center gap-2">
+                            <Icon name="package" className="w-5 h-5 text-emerald-400" />
+                            بضائع المحل والمنتجات
+                        </h3>
 
-                                        {/* Company block */}
-                                        <div class="inv-company">
-                                            <span class="inv-company-name">{shopName}</span>
-                                            {phone && <span>{phone}&nbsp;&nbsp;</span>}
-                                            {email && <span>{email}</span>}
-                                            {address && <div>{address}</div>}
-                                        </div>
-
-                                        {/* Info: Bill To | Payment | Invoice details */}
-                                        <div class="inv-info">
-                                            <div class="inv-info-block">
-                                                <div class="inv-info-label">BILL TO</div>
-                                                <div class="inv-info-val">{receipt.customer}</div>
-                                            </div>
-                                            <div class="inv-info-block">
-                                                <div class="inv-info-label">PAYMENT</div>
-                                                <div class="inv-info-val">{receipt.paymentMethod === 'Cash' ? 'Cash / نقدي' : 'Credit / آجل'}</div>
-                                            </div>
-                                            <div class="inv-info-block">
-                                                <div class="inv-info-label">DETAILS</div>
-                                                <div class="inv-info-row"><span class="inv-info-row-key">INVOICE #</span><span class="inv-info-row-val">{invoiceNum}</span></div>
-                                                <div class="inv-info-row"><span class="inv-info-row-key">DATE</span><span class="inv-info-row-val">{receipt.date}</span></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Table */}
-                                        <table class="inv-table">
-                                            <thead>
-                                                <tr>
-                                                    <th style={{width:'40px'}}>QTY</th>
-                                                    <th class="th-desc">DESCRIPTION</th>
-                                                    <th>UNIT PRICE</th>
-                                                    <th class="th-amt">AMOUNT</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {receipt.items.map((item, i) => (
-                                                    <tr key={i}>
-                                                        <td class="td-qty">1</td>
-                                                        <td class="td-desc">
-                                                            <div class="inv-desc-name">{item.brand} — {item.name}</div>
-                                                            {item.imei && <div class="inv-desc-sub">IMEI: {item.imei}</div>}
-                                                            {item.battery_health && <div class="inv-desc-sub">Battery: {item.battery_health}%</div>}
-                                                        </td>
-                                                        <td class="td-up">{parseFloat(item.price).toLocaleString()} {currency}</td>
-                                                        <td class="td-amt">{parseFloat(item.price).toLocaleString()} {currency}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-
-                                        {/* Totals */}
-                                        <div class="inv-totals">
-                                            <div class="inv-totals-row">
-                                                <span>Subtotal</span>
-                                                <span>{receipt.total.toLocaleString()} {currency}</span>
-                                            </div>
-                                        </div>
-                                        <div class="inv-totals-grand">
-                                            <span>TOTAL</span>
-                                            <span>{receipt.total.toLocaleString()} {currency}</span>
-                                        </div>
-
-                                        {/* Footer */}
-                                        <div class="inv-foot">
-                                            <div class="inv-foot-thanks">Thank you</div>
-                                            <div class="inv-foot-terms">
-                                                <div class="inv-foot-terms-title">TERMS &amp; CONDITIONS</div>
-                                                <div class="inv-foot-terms-text">{footerNote}</div>
-                                                <div class="inv-foot-copyright">© {new Date().getFullYear()} {shopName}. All rights reserved.</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3 p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl no-print">
-                                    <button onClick={() => setReceipt(null)} class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-100 transition-all">
-                                        إغلاق
-                                    </button>
-                                    <button onClick={printReceipt} class="flex-1 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                                        <Icon name="printer" className="w-4 h-4" /> طباعة الفاتورة
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Search Bar */}
+                        <div class="relative mb-4">
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="ابحث باسم الجهاز أو الماركة..."
+                                class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-200 focus:outline-none transition-all"
+                            />
+                            <Icon name="search" className="w-4 h-4 text-slate-500 absolute right-3.5 top-3" />
                         </div>
-                        );
-                    })()}
 
+                        {/* Category filter tabs */}
+                        <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 no-scrollbar">
+                            {['All', 'Phone', 'Accessory', 'Maintenance'].map(cat => (
+                                <button 
+                                    key={cat}
+                                    onClick={() => setPosFilter(cat)}
+                                    class={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
+                                        posFilter === cat 
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                        : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-transparent'
+                                    }`}
+                                >
+                                    {cat === 'All' && 'الكل'}
+                                    {cat === 'Phone' && 'هواتف'}
+                                    {cat === 'Accessory' && 'إكسسوارات'}
+                                    {cat === 'Maintenance' && 'صيانة'}
+                                </button>
+                            ))}
+                        </div>
 
-
-                    <div class="lg:col-span-5 p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h3 class="font-bold text-lg mb-6 text-emerald-400">قائمة البضائع والمنتجات بالمحل</h3>
-                        <div class="space-y-3 overflow-y-auto max-h-[500px] pr-2">
-                            {availableProducts.map(p => {
+                        {/* Products list container */}
+                        <div class="space-y-2.5 overflow-y-auto max-h-[380px] pr-1">
+                            {filteredProducts.map(p => {
                                 const available = p.items.filter(i => i.status === 'Available');
                                 return (
                                     <div 
                                         key={p.id} 
                                         onClick={() => addToCart(p)}
-                                        class="p-4 bg-slate-950 hover:bg-slate-800 border border-slate-850 rounded-xl flex justify-between items-center cursor-pointer transition-all"
+                                        class="p-4 bg-slate-950/70 hover:bg-slate-800 border border-slate-850/80 hover:border-slate-700 rounded-2xl flex justify-between items-center cursor-pointer transition-all hover:-translate-y-[1px]"
                                     >
-                                        <div>
+                                        <div class="flex-1 pr-2">
                                             <div class="font-bold text-sm text-slate-200">{p.brand} - {p.name}</div>
-                                            <div class="text-xs text-slate-400 mt-1 font-mono">{parseFloat(p.selling_price).toFixed(2)} د.إ</div>
+                                            <div class="text-xs text-emerald-400 mt-1 font-mono font-bold">{parseFloat(p.selling_price).toLocaleString()} د.ع</div>
                                         </div>
                                         <div class="text-left text-xs">
                                             {p.type === 'Phone' ? (
-                                                <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">
+                                                <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/10">
                                                     المتوفر: {available.length}
                                                 </span>
                                             ) : (
-                                                <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold">
-                                                    {p.type === 'Accessory' ? 'إكسسوار' : 'قطعة صيانة'}
+                                                <span class={`px-2.5 py-1 rounded-full font-bold border ${
+                                                    p.type === 'Accessory' 
+                                                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/10' 
+                                                    : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
+                                                }`}>
+                                                    {p.type === 'Accessory' ? 'إكسسوار' : 'صيانة'}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
                                 );
                             })}
+                            {filteredProducts.length === 0 && (
+                                <div class="text-center py-12 text-slate-500">لا توجد منتجات مطابقة للبحث.</div>
+                            )}
                         </div>
                     </div>
                 </div>
