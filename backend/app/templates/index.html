@@ -1497,6 +1497,7 @@
                                     />
                                 )}
                             </div>
+
                             {activeCategory === 'Maintenance' && (
                                 <div>
                                     <label class="block text-sm text-slate-400 mb-1.5">نوع قطعة الصيانة (اختيار سريع) *</label>
@@ -1530,7 +1531,7 @@
                                     required
                                     value={name}
                                     onChange={e => setName(e.target.value)}
-                                    list="inventory-device-models"
+                                    list={activeCategory === 'Phone' ? "inventory-device-models" : undefined}
                                     placeholder={
                                         activeCategory === 'Phone' ? "مثال: iPhone 15 Pro Max" :
                                         activeCategory === 'Accessory' ? "مثال: شاحن سريع 20W" : "مثال: شاشة"
@@ -1550,6 +1551,7 @@
                                         type="text" 
                                         value={compatibleDevice}
                                         onChange={e => setCompatibleDevice(e.target.value)}
+                                        list="inventory-device-models"
                                         placeholder="مثال: Galaxy A13, A04s, M13 (أو افصل بينها بـ /)"
                                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 text-slate-100"
                                     />
