@@ -192,6 +192,59 @@
                       .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
         };
 
+        // Intercept all keyboard events to convert Arabic/Farsi digits to English instantly as typed
+        window.addEventListener('keypress', (e) => {
+            const char = String.fromCharCode(e.which || e.keyCode);
+            const converted = toEnglishDigits(char);
+            if (converted !== char) {
+                e.preventDefault();
+                const input = e.target;
+                if (input && (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA')) {
+                    const start = input.selectionStart;
+                    const end = input.selectionEnd;
+                    const val = input.value;
+                    const newVal = val.slice(0, start) + converted + val.slice(end);
+                    
+                    // Safely set native value for React state binding
+                    const setter = Object.getOwnPropertyDescriptor(
+                        input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype, 
+                        "value"
+                    ).set;
+                    setter.call(input, newVal);
+                    
+                    input.selectionStart = input.selectionEnd = start + 1;
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            }
+        });
+
+        // Intercept all paste events to convert Arabic/Farsi digits to English in clipboard data
+        window.addEventListener('paste', (e) => {
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const converted = toEnglishDigits(pastedText);
+            if (converted !== pastedText) {
+                e.preventDefault();
+                const input = e.target;
+                if (input && (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA')) {
+                    const start = input.selectionStart;
+                    const end = input.selectionEnd;
+                    const val = input.value;
+                    const newVal = val.slice(0, start) + converted + val.slice(end);
+                    
+                    const setter = Object.getOwnPropertyDescriptor(
+                        input.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype, 
+                        "value"
+                    ).set;
+                    setter.call(input, newVal);
+                    
+                    input.selectionStart = input.selectionEnd = start + converted.length;
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            }
+        });
+
         // Custom Component for Icon Loader
         const Icon = ({ name, className }) => {
             useEffect(() => {
