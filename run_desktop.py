@@ -8,7 +8,7 @@ def main():
     # Start the backend server as a subprocess
     print("جاري تشغيل خادم النظام في الخلفية...")
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    backend_dir = os.path.join(current_dir, "backend")
+    backend_dir = os.path.join(current_dir, "backend", "app")
     
     # Run the main.py server
     process = subprocess.Popen([sys.executable, "main.py"], cwd=backend_dir)
