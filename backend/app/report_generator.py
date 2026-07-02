@@ -23,20 +23,31 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import arabic_reshaper
 from bidi.algorithm import get_display
 
-FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Amiri-Regular.ttf")
+FONT_REGULAR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Tajawal-Regular.ttf")
+FONT_BOLD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Tajawal-Bold.ttf")
 
 try:
-    if os.path.exists(FONT_PATH):
-        pdfmetrics.registerFont(TTFont('Amiri', FONT_PATH))
+    if os.path.exists(FONT_REGULAR_PATH):
+        pdfmetrics.registerFont(TTFont('Tajawal', FONT_REGULAR_PATH))
     else:
-        print("Downloading Amiri Arabic font...")
-        FONT_URL = "https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf"
+        print("Downloading Tajawal Arabic font...")
+        FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Regular.ttf"
         r = requests.get(FONT_URL, timeout=15)
-        with open(FONT_PATH, "wb") as f:
+        with open(FONT_REGULAR_PATH, "wb") as f:
             f.write(r.content)
-        pdfmetrics.registerFont(TTFont('Amiri', FONT_PATH))
+        pdfmetrics.registerFont(TTFont('Tajawal', FONT_REGULAR_PATH))
+
+    if os.path.exists(FONT_BOLD_PATH):
+        pdfmetrics.registerFont(TTFont('TajawalBold', FONT_BOLD_PATH))
+    else:
+        print("Downloading Tajawal Bold Arabic font...")
+        FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Bold.ttf"
+        r = requests.get(FONT_URL, timeout=15)
+        with open(FONT_BOLD_PATH, "wb") as f:
+            f.write(r.content)
+        pdfmetrics.registerFont(TTFont('TajawalBold', FONT_BOLD_PATH))
 except Exception as e:
-    print(f"Error loading or downloading font: {e}")
+    print(f"Error loading Tajawal fonts: {e}")
 
 def shape(text):
     if not text:
@@ -102,9 +113,9 @@ def generate_daily_report_pdf(pdf_path):
     title_style = ParagraphStyle(
         'ArabicTitle',
         parent=styles['Normal'],
-        fontName='Amiri',
-        fontSize=20,
-        leading=24,
+        fontName='TajawalBold',
+        fontSize=18,
+        leading=22,
         textColor=colors.HexColor('#0f172a'),
         alignment=1 # Centered
     )
@@ -112,9 +123,9 @@ def generate_daily_report_pdf(pdf_path):
     subtitle_style = ParagraphStyle(
         'ArabicSubtitle',
         parent=styles['Normal'],
-        fontName='Amiri',
-        fontSize=12,
-        leading=16,
+        fontName='Tajawal',
+        fontSize=10,
+        leading=14,
         textColor=colors.HexColor('#64748b'),
         alignment=1 # Centered
     )
@@ -122,8 +133,8 @@ def generate_daily_report_pdf(pdf_path):
     cell_style = ParagraphStyle(
         'ArabicCell',
         parent=styles['Normal'],
-        fontName='Amiri',
-        fontSize=9,
+        fontName='Tajawal',
+        fontSize=8.5,
         leading=13,
         textColor=colors.HexColor('#334155'),
         alignment=2 # Right-aligned
@@ -138,16 +149,16 @@ def generate_daily_report_pdf(pdf_path):
     cell_style_bold = ParagraphStyle(
         'ArabicCellBold',
         parent=cell_style,
-        fontName='Amiri',
-        fontSize=10,
+        fontName='TajawalBold',
+        fontSize=9.5,
         textColor=colors.HexColor('#0f172a')
     )
     
     header_style = ParagraphStyle(
         'ArabicHeader',
         parent=styles['Normal'],
-        fontName='Amiri',
-        fontSize=10,
+        fontName='TajawalBold',
+        fontSize=9,
         leading=14,
         textColor=colors.white,
         alignment=1 # Centered
@@ -166,7 +177,7 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Spacer(1, 15))
     
     # Financial Summary Section
-    story.append(Paragraph(shape("💰 الملخص المالي اليومي:"), cell_style_bold))
+    story.append(Paragraph(shape("الملخص المالي اليومي:"), cell_style_bold))
     story.append(Spacer(1, 5))
     
     summary_data = [
@@ -189,7 +200,7 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Spacer(1, 20))
     
     # Sales details section
-    story.append(Paragraph(shape("📋 تفاصيل فواتير المبيعات اليوم:"), cell_style_bold))
+    story.append(Paragraph(shape("تفاصيل فواتير المبيعات اليوم:"), cell_style_bold))
     story.append(Spacer(1, 5))
     
     sales_headers = [
@@ -226,7 +237,7 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Spacer(1, 20))
     
     # Maintenance jobs completed
-    story.append(Paragraph(shape("🔧 الصيانة المنجزة والمسلمة اليوم:"), cell_style_bold))
+    story.append(Paragraph(shape("الصيانة المنجزة والمسلمة اليوم:"), cell_style_bold))
     story.append(Spacer(1, 5))
     
     mnt_headers = [
@@ -260,7 +271,7 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Spacer(1, 20))
     
     # Low stock alerts section
-    story.append(Paragraph(shape("⚠️ نواقص البضائع بالمخزن (2 قطع أو أقل):"), cell_style_bold))
+    story.append(Paragraph(shape("نواقص البضائع بالمخزن (2 قطع أو أقل):"), cell_style_bold))
     story.append(Spacer(1, 5))
     
     stock_headers = [
@@ -274,7 +285,7 @@ def generate_daily_report_pdf(pdf_path):
         stock_rows.append([
             Paragraph(shape(brand), cell_style),
             Paragraph(shape(name), cell_style),
-            Paragraph(shape("خالي تماماً 🔴" if qty == 0 else f"{qty} قطع 🟡"), cell_style_center),
+            Paragraph(shape("نفد تماماً" if qty == 0 else f"متبقي: {qty} قطع"), cell_style_center),
             Paragraph(shape("موبايل" if p_type == 'Phone' else "إكسسوار"), cell_style_center)
         ])
         
