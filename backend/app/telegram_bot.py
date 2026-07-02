@@ -250,7 +250,7 @@ def run_bot():
                     continue
 
                 # Handle "Shortages/Low Stock" command
-                if text.lower() in ["/shortages", "نواقص", "خلص", "تقرير"]:
+                if text.lower() in ["/shortages", "نواقص", "خلص"]:
                     items = get_all_inventory()
                     shortages = [item for item in items if item[2] <= 2 and item[4] != 'Maintenance']
                     
@@ -260,7 +260,7 @@ def run_bot():
                         reply_text = "⚠️ *تقرير البضائع التي توشك على النفاد (قطعتين أو أقل):*\n\n"
                         for brand, name, qty, price, p_type in shortages:
                             type_label = type_mapping.get(p_type, "بضاعة")
-                            status_desc = "🔴 نافذ تماماً" if qty == 0 else f"🟡 متبقي: {qty} قطع"
+                            status_desc = "🔴  نافذ تماماً" if qty == 0 else f"🟡 متبقي: {qty} قطع"
                             reply_text += f"• *{brand} - {name}* ({type_label})\n  👈 {status_desc}\n"
                             
                     requests.post(f"{api_url}/sendMessage", json={
@@ -268,6 +268,35 @@ def run_bot():
                         "text": reply_text,
                         "parse_mode": "Markdown"
                     })
+                    continue
+
+                # Handle "Daily PDF Report" command
+                if text.lower() in ["/report", "تقرير", "ملخص", "اليومي", "الملخص"]:
+                    pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "requested_report.pdf")
+                    try:
+                        from app.report_generator import generate_daily_report_pdf
+                        generate_daily_report_pdf(pdf_path)
+                        
+                        with open(pdf_path, "rb") as pdf:
+                            files = {'document': pdf}
+                            payload = {
+                                'chat_id': chat_id,
+                                'caption': "📊 التقرير المالي والتشغيلي اليومي لمتجر M MOBILE",
+                                'parse_mode': 'Markdown'
+                            }
+                            requests.post(f"{api_url}/sendDocument", data=payload, files=files)
+                    except Exception as e:
+                        print(f"Error sending requested PDF report: {e}")
+                        requests.post(f"{api_url}/sendMessage", json={
+                            "chat_id": chat_id, 
+                            "text": "❌ عذراً، حدث خطأ أثناء توليد تقرير الـ PDF اليومي."
+                        })
+                    finally:
+                        if os.path.exists(pdf_path):
+                            try:
+                                os.remove(pdf_path)
+                            except Exception:
+                                pass
                     continue
 
                 # Search query
