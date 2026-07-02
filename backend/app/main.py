@@ -8,7 +8,7 @@ import os
 import subprocess
 import sys
 
-from .database import engine, Base, get_db
+from .database import engine, Base, get_db, SessionLocal
 from . import models, schemas, crud
 
 # Global reference for Telegram Bot subprocess
