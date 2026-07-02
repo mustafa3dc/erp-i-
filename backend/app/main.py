@@ -170,24 +170,37 @@ def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def get_telegram_settings():
     current_dir = os.path.dirname(os.path.realpath(__file__))
     token_path = os.path.join(current_dir, "telegram_token.txt")
+    users_path = os.path.join(current_dir, "allowed_users.txt")
     token = ""
+    allowed_users = ""
     if os.path.exists(token_path):
         with open(token_path, "r", encoding="utf-8") as f:
             token = f.read().strip()
+    if os.path.exists(users_path):
+        with open(users_path, "r", encoding="utf-8") as f:
+            allowed_users = ", ".join([line.strip() for line in f if line.strip()])
             
     is_running = bot_process is not None and bot_process.poll() is None
-    return {"token": token, "is_running": is_running}
+    return {"token": token, "allowed_users": allowed_users, "is_running": is_running}
 
 from pydantic import BaseModel
 class TelegramTokenSettings(BaseModel):
     token: str
+    allowed_users: Optional[str] = ""
 
 @app.post("/telegram/settings/")
 def update_telegram_settings(settings: TelegramTokenSettings):
     current_dir = os.path.dirname(os.path.realpath(__file__))
     token_path = os.path.join(current_dir, "telegram_token.txt")
+    users_path = os.path.join(current_dir, "allowed_users.txt")
+    
     with open(token_path, "w", encoding="utf-8") as f:
         f.write(settings.token.strip())
+        
+    users_list = [u.strip() for u in settings.allowed_users.replace(",", "\n").split("\n") if u.strip()]
+    with open(users_path, "w", encoding="utf-8") as f:
+        for user in users_list:
+            f.write(f"{user}\n")
         
     start_bot_process()
     is_running = bot_process is not None and bot_process.poll() is None

@@ -82,6 +82,26 @@ def get_telegram_token():
     with open(token_path, "r", encoding="utf-8") as f:
         return f.read().strip()
 
+def is_user_allowed(message):
+    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "allowed_users.txt")
+    if not os.path.exists(filepath):
+        return True
+    with open(filepath, "r", encoding="utf-8") as f:
+        allowed = [line.strip().lower() for line in f if line.strip()]
+    if not allowed:
+        return True
+    from_user = message.get("from", {})
+    user_id = str(from_user.get("id", ""))
+    username = from_user.get("username", "")
+    username = username.lower() if username else ""
+    if user_id in allowed:
+        return True
+    if username in allowed:
+        return True
+    if f"@{username}" in allowed:
+        return True
+    return False
+
 def register_chat_id(chat_id):
     try:
         filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "registered_chats.txt")
@@ -204,6 +224,14 @@ def run_bot():
                 text = message.get("text", "").strip()
 
                 if not chat_id or not text:
+                    continue
+
+                if not is_user_allowed(message):
+                    # Reply with unauthorized message
+                    requests.post(f"{api_url}/sendMessage", json={
+                        "chat_id": chat_id,
+                        "text": "⚠️ عذراً، حسابك غير مصرح له باستخدام هذا البوت. يرجى الطلب من مسؤول النظام إضافة حسابك في الإعدادات."
+                    })
                     continue
 
                 register_chat_id(chat_id)

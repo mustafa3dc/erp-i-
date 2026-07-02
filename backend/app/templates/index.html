@@ -2672,6 +2672,7 @@
         function AdvancedAccountingPage({ accounts, entries, refresh }) {
             const [activeSubTab, setActiveSubTab] = useState('chart');
             const [botToken, setBotToken] = useState('');
+            const [allowedUsers, setAllowedUsers] = useState('');
             const [isBotRunning, setIsBotRunning] = useState(false);
             const [saving, setSaving] = useState(false);
 
@@ -2680,7 +2681,8 @@
                 const fetchSettings = async () => {
                     try {
                         const res = await axios.get('/telegram/settings/');
-                        setBotToken(res.data.token);
+                        setBotToken(res.data.token || '');
+                        setAllowedUsers(res.data.allowed_users || '');
                         setIsBotRunning(res.data.is_running);
                     } catch (e) {
                         console.error("Failed to load Telegram Bot settings:", e);
@@ -2693,11 +2695,14 @@
                 e.preventDefault();
                 setSaving(true);
                 try {
-                    const res = await axios.post('/telegram/settings/', { token: botToken });
+                    const res = await axios.post('/telegram/settings/', { 
+                        token: botToken,
+                        allowed_users: allowedUsers
+                    });
                     setIsBotRunning(res.data.is_running);
-                    alert("تم حفظ توكن البوت وتحديث التشغيل بنجاح!");
+                    alert("تم حفظ إعدادات البوت والتشغيل بنجاح!");
                 } catch (err) {
-                    alert("حدث خطأ أثناء حفظ توكن البوت.");
+                    alert("حدث خطأ أثناء حفظ إعدادات البوت.");
                 } finally {
                     setSaving(false);
                 }
@@ -2819,6 +2824,20 @@
                                         placeholder="مثال: 123456789:ABCdefGhIJKlmNoPQRsT..."
                                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500 text-slate-100 font-mono text-sm"
                                     />
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm text-slate-400 mb-2">الحسابات والـ Chat IDs المصرح لها بالاستخدام (اختياري)</label>
+                                    <input 
+                                        type="text"
+                                        value={allowedUsers}
+                                        onChange={e => setAllowedUsers(e.target.value)}
+                                        placeholder="مثال: mustafa, 123456789, user_name (افصل بينها بفاصلة. إذا تركتها فارغة، يمكن للجميع استخدام البوت)"
+                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500 text-slate-100 text-sm"
+                                    />
+                                    <p class="text-[10px] text-slate-500 mt-1">
+                                        تلميح: يمكنك كتابة اسم المستخدم (username) على تليجرام أو رقم المعرّف الرقمي (Chat ID) مباشرة.
+                                    </p>
                                 </div>
 
                                 <div class="p-4 bg-slate-950/50 rounded-xl border border-slate-850 flex items-center justify-between">
