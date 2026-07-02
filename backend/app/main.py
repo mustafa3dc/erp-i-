@@ -165,20 +165,53 @@ def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_sales(db=db, skip=skip, limit=limit)
 
 
+def get_system_setting(key: str) -> str:
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        res = db.execute(text("SELECT value FROM system_settings WHERE key = :key"), {"key": key}).fetchone()
+        return res[0] if res else ""
+    except Exception:
+        return ""
+    finally:
+        db.close()
+
+def set_system_setting(key: str, value: str):
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        res = db.execute(text("SELECT 1 FROM system_settings WHERE key = :key"), {"key": key}).fetchone()
+        if res:
+            db.execute(text("UPDATE system_settings SET value = :value WHERE key = :key"), {"key": key, "value": value})
+        else:
+            db.execute(text("INSERT INTO system_settings (key, value) VALUES (:key, :value)"), {"key": key, "value": value})
+        db.commit()
+    except Exception as e:
+        print(f"Error setting setting {key}: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 # Telegram Bot Settings
 @app.get("/telegram/settings/")
 def get_telegram_settings():
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    token_path = os.path.join(current_dir, "telegram_token.txt")
-    users_path = os.path.join(current_dir, "allowed_users.txt")
-    token = ""
-    allowed_users = ""
-    if os.path.exists(token_path):
-        with open(token_path, "r", encoding="utf-8") as f:
-            token = f.read().strip()
-    if os.path.exists(users_path):
-        with open(users_path, "r", encoding="utf-8") as f:
-            allowed_users = ", ".join([line.strip() for line in f if line.strip()])
+    token = get_system_setting("telegram_token")
+    allowed_users = get_system_setting("allowed_users")
+    
+    # Fallback to files if DB empty
+    if not token:
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        token_path = os.path.join(current_dir, "telegram_token.txt")
+        if os.path.exists(token_path):
+            with open(token_path, "r", encoding="utf-8") as f:
+                token = f.read().strip()
+                
+    if not allowed_users:
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        users_path = os.path.join(current_dir, "allowed_users.txt")
+        if os.path.exists(users_path):
+            with open(users_path, "r", encoding="utf-8") as f:
+                allowed_users = ", ".join([line.strip() for line in f if line.strip()])
             
     is_running = bot_process is not None and bot_process.poll() is None
     return {"token": token, "allowed_users": allowed_users, "is_running": is_running}
@@ -190,6 +223,10 @@ class TelegramTokenSettings(BaseModel):
 
 @app.post("/telegram/settings/")
 def update_telegram_settings(settings: TelegramTokenSettings):
+    set_system_setting("telegram_token", settings.token.strip())
+    set_system_setting("allowed_users", settings.allowed_users.strip())
+    
+    # Backup to files
     current_dir = os.path.dirname(os.path.realpath(__file__))
     token_path = os.path.join(current_dir, "telegram_token.txt")
     users_path = os.path.join(current_dir, "allowed_users.txt")

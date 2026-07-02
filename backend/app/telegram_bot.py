@@ -75,7 +75,23 @@ def get_all_inventory():
     finally:
         db.close()
 
+def get_system_setting(key: str) -> str:
+    try:
+        from app.database import SessionLocal
+        from sqlalchemy import text
+        db = SessionLocal()
+        try:
+            res = db.execute(text("SELECT value FROM system_settings WHERE key = :key"), {"key": key}).fetchone()
+            return res[0] if res else ""
+        finally:
+            db.close()
+    except Exception:
+        return ""
+
 def get_telegram_token():
+    token = get_system_setting("telegram_token")
+    if token:
+        return token
     token_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_token.txt")
     if not os.path.exists(token_path):
         return None
@@ -83,11 +99,15 @@ def get_telegram_token():
         return f.read().strip()
 
 def is_user_allowed(message):
-    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "allowed_users.txt")
-    if not os.path.exists(filepath):
-        return False
-    with open(filepath, "r", encoding="utf-8") as f:
-        allowed = [line.strip().lower() for line in f if line.strip()]
+    allowed_str = get_system_setting("allowed_users")
+    if allowed_str:
+        allowed = [u.strip().lower() for u in allowed_str.split(",") if u.strip()]
+    else:
+        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "allowed_users.txt")
+        if not os.path.exists(filepath):
+            return False
+        with open(filepath, "r", encoding="utf-8") as f:
+            allowed = [line.strip().lower() for line in f if line.strip()]
     if not allowed:
         return False
     from_user = message.get("from", {})
