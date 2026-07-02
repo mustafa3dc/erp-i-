@@ -2672,7 +2672,7 @@
         function AdvancedAccountingPage({ accounts, entries, refresh }) {
             const [activeSubTab, setActiveSubTab] = useState('chart');
             const [botToken, setBotToken] = useState('');
-            const [allowedUsers, setAllowedUsers] = useState('');
+            const [allowedUsers, setAllowedUsers] = useState([]);
             const [isBotRunning, setIsBotRunning] = useState(false);
             const [saving, setSaving] = useState(false);
 
@@ -2682,7 +2682,8 @@
                     try {
                         const res = await axios.get('/telegram/settings/');
                         setBotToken(res.data.token || '');
-                        setAllowedUsers(res.data.allowed_users || '');
+                        const users = res.data.allowed_users ? res.data.allowed_users.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        setAllowedUsers(users);
                         setIsBotRunning(res.data.is_running);
                     } catch (e) {
                         console.error("Failed to load Telegram Bot settings:", e);
@@ -2695,9 +2696,10 @@
                 e.preventDefault();
                 setSaving(true);
                 try {
+                    const cleanUsers = allowedUsers.map(u => u.trim()).filter(Boolean).join(',');
                     const res = await axios.post('/telegram/settings/', { 
                         token: botToken,
-                        allowed_users: allowedUsers
+                        allowed_users: cleanUsers
                     });
                     setIsBotRunning(res.data.is_running);
                     alert("تم حفظ إعدادات البوت والتشغيل بنجاح!");
@@ -2827,16 +2829,40 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm text-slate-400 mb-2">الحسابات والـ Chat IDs المصرح لها بالاستخدام (اختياري)</label>
-                                    <input 
-                                        type="text"
-                                        value={allowedUsers}
-                                        onChange={e => setAllowedUsers(e.target.value)}
-                                        placeholder="مثال: mustafa, 123456789, user_name (افصل بينها بفاصلة. إذا تركتها فارغة، يمكن للجميع استخدام البوت)"
-                                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500 text-slate-100 text-sm"
-                                    />
-                                    <p class="text-[10px] text-slate-500 mt-1">
-                                        تلميح: يمكنك كتابة اسم المستخدم (username) على تليجرام أو رقم المعرّف الرقمي (Chat ID) مباشرة.
+                                    <label class="block text-sm text-slate-400 mb-2 font-bold">الحسابات و الـ Chat IDs المصرح لها بالاستخدام</label>
+                                    <div class="space-y-2">
+                                        {allowedUsers.map((user, index) => (
+                                            <div key={index} class="flex gap-2">
+                                                <input 
+                                                    type="text"
+                                                    value={user}
+                                                    onChange={e => {
+                                                        const copy = [...allowedUsers];
+                                                        copy[index] = e.target.value;
+                                                        setAllowedUsers(copy);
+                                                    }}
+                                                    placeholder="مثال: mustafa أو 123456789"
+                                                    class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-sky-500 font-mono"
+                                                />
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => setAllowedUsers(allowedUsers.filter((_, i) => i !== index))}
+                                                    class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/10 rounded-xl text-xs font-bold transition-all"
+                                                >
+                                                    حذف
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setAllowedUsers([...allowedUsers, ''])}
+                                        class="mt-3 px-4 py-2.5 bg-slate-950 hover:bg-slate-850 text-sky-400 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                                    >
+                                        + إضافة حساب مصرح له
+                                    </button>
+                                    <p class="text-[10px] text-slate-500 mt-2">
+                                        تنبيه: يجب إضافة الحسابات المصرح لها هنا. إذا كانت القائمة فارغة فلن يتمكن أحد من استخدام البوت.
                                     </p>
                                 </div>
 

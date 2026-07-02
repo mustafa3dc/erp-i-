@@ -85,11 +85,11 @@ def get_telegram_token():
 def is_user_allowed(message):
     filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "allowed_users.txt")
     if not os.path.exists(filepath):
-        return True
+        return False
     with open(filepath, "r", encoding="utf-8") as f:
         allowed = [line.strip().lower() for line in f if line.strip()]
     if not allowed:
-        return True
+        return False
     from_user = message.get("from", {})
     user_id = str(from_user.get("id", ""))
     username = from_user.get("username", "")
