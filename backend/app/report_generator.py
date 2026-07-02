@@ -7,9 +7,9 @@ from decimal import Decimal
 # Add current folder to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from sqlalchemy.orm import joinedload
 from app.database import SessionLocal
 from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem
+from sqlalchemy.orm import joinedload
 
 # PDF Generation Libraries
 from reportlab.lib.pagesizes import letter
@@ -49,12 +49,14 @@ def get_today_stats():
     db = SessionLocal()
     try:
         today = datetime.datetime.now().date()
+        # Convert to timezone-aware datetimes (system local timezone)
         start_dt = datetime.datetime.combine(today, datetime.time.min).astimezone()
         end_dt = datetime.datetime.combine(today, datetime.time.max).astimezone()
         
         sales = db.query(Sale).options(
             joinedload(Sale.items).joinedload(SaleItem.product)
         ).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
+        
         maintenance = db.query(MaintenanceJob).filter(
             MaintenanceJob.updated_at >= start_dt, 
             MaintenanceJob.updated_at <= end_dt,
@@ -82,7 +84,7 @@ def generate_daily_report_pdf(pdf_path):
         for item in s.items:
             # Get purchase price from associated product
             if item.product:
-                total_cost_amount += Decimal(item.product.purchase_price)
+                total_cost_amount += Decimal(item.product.purchase_price or 0)
                 
     net_sales_profit = total_sales_amount - total_cost_amount
     
@@ -121,10 +123,16 @@ def generate_daily_report_pdf(pdf_path):
         'ArabicCell',
         parent=styles['Normal'],
         fontName='Amiri',
-        fontSize=10,
-        leading=14,
+        fontSize=9,
+        leading=13,
         textColor=colors.HexColor('#334155'),
         alignment=2 # Right-aligned
+    )
+    
+    cell_style_center = ParagraphStyle(
+        'ArabicCellCenter',
+        parent=cell_style,
+        alignment=1 # Centered
     )
     
     cell_style_bold = ParagraphStyle(
@@ -132,6 +140,22 @@ def generate_daily_report_pdf(pdf_path):
         parent=cell_style,
         fontName='Amiri',
         fontSize=10,
+        textColor=colors.HexColor('#0f172a')
+    )
+    
+    header_style = ParagraphStyle(
+        'ArabicHeader',
+        parent=styles['Normal'],
+        fontName='Amiri',
+        fontSize=10,
+        leading=14,
+        textColor=colors.white,
+        alignment=1 # Centered
+    )
+    
+    header_style_dark = ParagraphStyle(
+        'ArabicHeaderDark',
+        parent=header_style,
         textColor=colors.HexColor('#0f172a')
     )
     
@@ -168,26 +192,32 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Paragraph(shape("📋 تفاصيل فواتير المبيعات اليوم:"), cell_style_bold))
     story.append(Spacer(1, 5))
     
-    sales_headers = [shape("رقم الفاتورة"), shape("الزبون"), shape("المبيعات"), shape("طريقة الدفع"), shape("المبلغ")]
+    sales_headers = [
+        Paragraph(shape("رقم الفاتورة"), header_style),
+        Paragraph(shape("الزبون"), header_style),
+        Paragraph(shape("المبيعات"), header_style),
+        Paragraph(shape("طريقة الدفع"), header_style),
+        Paragraph(shape("المبلغ"), header_style)
+    ]
     sales_rows = [sales_headers]
     for s in sales:
         items_desc = ", ".join([f"{item.product.brand} {item.product.name}" for item in s.items if item.product])
         sales_rows.append([
-            shape(f"INV-{str(s.id)[:8]}"),
-            shape(s.customer_name or "زبون نقدي"),
-            shape(items_desc),
-            shape("نقداً" if s.payment_method.value == 'Cash' else "آجل"),
-            shape(f"{s.total_amount:,.0f} د.ع")
+            Paragraph(shape(f"INV-{str(s.id)[:8]}"), cell_style_center),
+            Paragraph(shape(s.customer_name or "زبون نقدي"), cell_style),
+            Paragraph(shape(items_desc), cell_style),
+            Paragraph(shape("نقداً" if s.payment_method.value == 'Cash' else "آجل"), cell_style_center),
+            Paragraph(shape(f"{s.total_amount:,.0f} د.ع"), cell_style)
         ])
         
     if len(sales) == 0:
-        sales_rows.append([shape("لا توجد مبيعات مسجلة اليوم"), "", "", "", ""])
+        sales_rows.append([Paragraph(shape("لا توجد مبيعات مسجلة اليوم"), cell_style_center), "", "", "", ""])
         
-    sales_table = Table(sales_rows, colWidths=[90, 80, 190, 60, 80])
+    sales_table = Table(sales_rows, colWidths=[95, 95, 170, 70, 70])
     sales_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0f172a')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('TOPPADDING', (0,0), (-1,-1), 6),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
@@ -199,24 +229,29 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Paragraph(shape("🔧 الصيانة المنجزة والمسلمة اليوم:"), cell_style_bold))
     story.append(Spacer(1, 5))
     
-    mnt_headers = [shape("الزبون"), shape("الجهاز المصلح"), shape("تاريخ التسليم"), shape("التكلفة")]
+    mnt_headers = [
+        Paragraph(shape("الزبون"), header_style),
+        Paragraph(shape("الجهاز المصلح"), header_style),
+        Paragraph(shape("تاريخ التسليم"), header_style),
+        Paragraph(shape("التكلفة"), header_style)
+    ]
     mnt_rows = [mnt_headers]
     for m in maintenance:
         mnt_rows.append([
-            shape(m.customer_name),
-            shape(m.device_model),
-            shape(m.updated_at.strftime('%d/%m/%Y')),
-            shape(f"{m.cost:,.0f} د.ع")
+            Paragraph(shape(m.customer_name), cell_style),
+            Paragraph(shape(m.device_model), cell_style),
+            Paragraph(shape(m.updated_at.strftime('%d/%m/%Y')), cell_style_center),
+            Paragraph(shape(f"{m.cost:,.0f} د.ع"), cell_style)
         ])
         
     if len(maintenance) == 0:
-        mnt_rows.append([shape("لم يتم تسليم أي أجهزة صيانة اليوم"), "", "", ""])
+        mnt_rows.append([Paragraph(shape("لم يتم تسليم أي أجهزة صيانة اليوم"), cell_style_center), "", "", ""])
         
-    mnt_table = Table(mnt_rows, colWidths=[120, 150, 110, 120])
+    mnt_table = Table(mnt_rows, colWidths=[125, 150, 115, 110])
     mnt_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#475569')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('TOPPADDING', (0,0), (-1,-1), 6),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
@@ -228,24 +263,29 @@ def generate_daily_report_pdf(pdf_path):
     story.append(Paragraph(shape("⚠️ نواقص البضائع بالمخزن (2 قطع أو أقل):"), cell_style_bold))
     story.append(Spacer(1, 5))
     
-    stock_headers = [shape("الماركة"), shape("المنتج"), shape("الكمية المتبقية"), shape("التصنيف")]
+    stock_headers = [
+        Paragraph(shape("الماركة"), header_style_dark),
+        Paragraph(shape("المنتج"), header_style_dark),
+        Paragraph(shape("الكمية المتبقية"), header_style_dark),
+        Paragraph(shape("التصنيف"), header_style_dark)
+    ]
     stock_rows = [stock_headers]
     for brand, name, qty, p_type in low_stock:
         stock_rows.append([
-            shape(brand),
-            shape(name),
-            shape(f"خالي تماماً 🔴" if qty == 0 else f"{qty} قطع 🟡"),
-            shape("موبايل" if p_type == 'Phone' else "إكسسوار")
+            Paragraph(shape(brand), cell_style),
+            Paragraph(shape(name), cell_style),
+            Paragraph(shape("خالي تماماً 🔴" if qty == 0 else f"{qty} قطع 🟡"), cell_style_center),
+            Paragraph(shape("موبايل" if p_type == 'Phone' else "إكسسوار"), cell_style_center)
         ])
         
     if len(low_stock) == 0:
-        stock_rows.append([shape("جميع بضائع المخزن متوفرة بكميات ممتازة!"), "", "", ""])
+        stock_rows.append([Paragraph(shape("جميع بضائع المخزن متوفرة بكميات ممتازة!"), cell_style_center), "", "", ""])
         
-    stock_table = Table(stock_rows, colWidths=[120, 150, 110, 120])
+    stock_table = Table(stock_rows, colWidths=[125, 150, 115, 110])
     stock_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#94a3b8')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor('#0f172a')),
-        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e2e8f0')),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('TOPPADDING', (0,0), (-1,-1), 6),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
