@@ -286,10 +286,13 @@ def run_bot():
                             }
                             requests.post(f"{api_url}/sendDocument", data=payload, files=files)
                     except Exception as e:
+                        import traceback
+                        error_trace = traceback.format_exc()
                         print(f"Error sending requested PDF report: {e}")
                         requests.post(f"{api_url}/sendMessage", json={
                             "chat_id": chat_id, 
-                            "text": "❌ عذراً، حدث خطأ أثناء توليد تقرير الـ PDF اليومي."
+                            "text": f"❌ عذراً، حدث خطأ أثناء توليد تقرير الـ PDF اليومي:\n`{str(e)}`\n\n```\n{error_trace[:3000]}\n```",
+                            "parse_mode": "Markdown"
                         })
                     finally:
                         if os.path.exists(pdf_path):
