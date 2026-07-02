@@ -22,24 +22,20 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import arabic_reshaper
 from bidi.algorithm import get_display
 
-FONT_URL = "https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf"
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Amiri-Regular.ttf")
 
-def download_font_if_needed():
-    if not os.path.exists(FONT_PATH):
+try:
+    if os.path.exists(FONT_PATH):
+        pdfmetrics.registerFont(TTFont('Amiri', FONT_PATH))
+    else:
         print("Downloading Amiri Arabic font...")
-        try:
-            r = requests.get(FONT_URL, timeout=30)
-            with open(FONT_PATH, "wb") as f:
-                f.write(r.content)
-            print("Font downloaded successfully.")
-        except Exception as e:
-            print(f"Error downloading font: {e}")
-
-# Download and register font
-download_font_if_needed()
-if os.path.exists(FONT_PATH):
-    pdfmetrics.registerFont(TTFont('Amiri', FONT_PATH))
+        FONT_URL = "https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf"
+        r = requests.get(FONT_URL, timeout=15)
+        with open(FONT_PATH, "wb") as f:
+            f.write(r.content)
+        pdfmetrics.registerFont(TTFont('Amiri', FONT_PATH))
+except Exception as e:
+    print(f"Error loading or downloading font: {e}")
 
 def shape(text):
     if not text:
