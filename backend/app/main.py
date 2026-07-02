@@ -75,6 +75,19 @@ def read_root():
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Frontend template not found</h1>", status_code=404)
+@app.get("/test-pdf")
+def test_pdf():
+    import traceback
+    try:
+        from .report_generator import generate_daily_report_pdf
+        pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_report.pdf")
+        generate_daily_report_pdf(pdf_path)
+        if os.path.exists(pdf_path):
+            os.remove(pdf_path)
+        return {"status": "success", "message": "PDF generated successfully!"}
+    except Exception as e:
+        error_str = traceback.format_exc()
+        return {"status": "error", "message": str(e), "traceback": error_str}
 
 
 # Accounts
