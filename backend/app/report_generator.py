@@ -8,8 +8,25 @@ from decimal import Decimal
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import SessionLocal
-from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem
+from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem, InventoryItem
 from sqlalchemy.orm import joinedload
+
+# Run simple migration queries to add new columns to existing databases safely
+db_mig = SessionLocal()
+try:
+    from sqlalchemy import text
+    try:
+        db_mig.execute(text("ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID"))
+        db_mig.commit()
+    except Exception:
+        db_mig.rollback()
+    try:
+        db_mig.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
+        db_mig.commit()
+    except Exception:
+        db_mig.rollback()
+finally:
+    db_mig.close()
 
 # PDF Generation Libraries
 from reportlab.lib.pagesizes import letter
@@ -68,10 +85,19 @@ def get_today_stats():
             joinedload(Sale.items).joinedload(SaleItem.product)
         ).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
         
-        maintenance = db.query(MaintenanceJob).filter(
+        maintenance = db.query(MaintenanceJob).options(
+            joinedload(MaintenanceJob.used_product)
+        ).filter(
             MaintenanceJob.updated_at >= start_dt, 
             MaintenanceJob.updated_at <= end_dt,
             MaintenanceJob.status == "Delivered" # Completed & delivered today
+        ).all()
+        
+        added_items = db.query(InventoryItem).options(
+            joinedload(InventoryItem.product)
+        ).filter(
+            InventoryItem.created_at >= start_dt,
+            InventoryItem.created_at <= end_dt
         ).all()
         
         products = db.query(Product).filter(Product.type != 'Maintenance').all()
@@ -81,12 +107,12 @@ def get_today_stats():
             if avail_count <= 2:
                 low_stock.append((p.brand, p.name, avail_count, p.type.name))
                 
-        return sales, maintenance, low_stock
+        return sales, maintenance, low_stock, added_items
     finally:
         db.close()
 
 def generate_daily_report_pdf(pdf_path):
-    sales, maintenance, low_stock = get_today_stats()
+    sales, maintenance, low_stock, added_items = get_today_stats()
     
     # Calculate Summary Totals
     total_sales_amount = sum(Decimal(s.total_amount) for s in sales)
@@ -99,10 +125,19 @@ def generate_daily_report_pdf(pdf_path):
                 
     net_sales_profit = total_sales_amount - total_cost_amount
     
-    # Maintenance Profits
+    # Maintenance Revenue & Spare Parts Cost
     total_maintenance_revenue = sum(Decimal(m.cost) for m in maintenance)
+    total_maintenance_parts_cost = Decimal("0.00")
+    for m in maintenance:
+        if m.used_product:
+            total_maintenance_parts_cost += Decimal(m.used_product.purchase_price or 0)
+            
+    net_maintenance_profit = total_maintenance_revenue - total_maintenance_parts_cost
     
-    total_profit = net_sales_profit + total_maintenance_revenue
+    # Total purchases/added items cost today
+    total_purchases_cost = sum(Decimal(item.product.purchase_price or 0) for item in added_items if item.product)
+    
+    total_profit = net_sales_profit + net_maintenance_profit
     
     # Start document
     doc = SimpleDocTemplate(pdf_path, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
@@ -185,15 +220,18 @@ def generate_daily_report_pdf(pdf_path):
         [Paragraph(shape("إجمالي تكلفة المبيعات:"), cell_style_bold), Paragraph(shape(f"{total_cost_amount:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("أرباح مبيعات البضائع:"), cell_style_bold), Paragraph(shape(f"{net_sales_profit:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("إيرادات قسم الصيانة:"), cell_style_bold), Paragraph(shape(f"{total_maintenance_revenue:,.2f} د.ع"), cell_style)],
+        [Paragraph(shape("تكلفة قطع الغيار المستخدمة:"), cell_style_bold), Paragraph(shape(f"{total_maintenance_parts_cost:,.2f} د.ع"), cell_style)],
+        [Paragraph(shape("صافي أرباح قسم الصيانة:"), cell_style_bold), Paragraph(shape(f"{net_maintenance_profit:,.2f} د.ع"), cell_style)],
+        [Paragraph(shape("تكلفة البضائع المضافة للمخازن اليوم:"), cell_style_bold), Paragraph(shape(f"{total_purchases_cost:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("صافي الأرباح الكلي المنجز:"), cell_style_bold), Paragraph(shape(f"{total_profit:,.2f} د.ع"), cell_style)]
     ]
     
-    summary_table = Table(summary_data, colWidths=[200, 300])
+    summary_table = Table(summary_data, colWidths=[240, 260])
     summary_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
         ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 5),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
     ]))
     story.append(summary_table)
@@ -243,22 +281,23 @@ def generate_daily_report_pdf(pdf_path):
     mnt_headers = [
         Paragraph(shape("الزبون"), header_style),
         Paragraph(shape("الجهاز المصلح"), header_style),
-        Paragraph(shape("تاريخ التسليم"), header_style),
+        Paragraph(shape("قطع الغيار المستخدمة"), header_style),
         Paragraph(shape("التكلفة"), header_style)
     ]
     mnt_rows = [mnt_headers]
     for m in maintenance:
+        part_name = f"{m.used_product.brand} {m.used_product.name}" if m.used_product else "لا يوجد"
         mnt_rows.append([
             Paragraph(shape(m.customer_name), cell_style),
             Paragraph(shape(m.device_model), cell_style),
-            Paragraph(shape(m.updated_at.strftime('%d/%m/%Y')), cell_style_center),
+            Paragraph(shape(part_name), cell_style),
             Paragraph(shape(f"{m.cost:,.0f} د.ع"), cell_style)
         ])
         
     if len(maintenance) == 0:
         mnt_rows.append([Paragraph(shape("لم يتم تسليم أي أجهزة صيانة اليوم"), cell_style_center), "", "", ""])
         
-    mnt_table = Table(mnt_rows, colWidths=[125, 150, 115, 110])
+    mnt_table = Table(mnt_rows, colWidths=[120, 140, 130, 110])
     mnt_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#475569')),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -268,6 +307,43 @@ def generate_daily_report_pdf(pdf_path):
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
     ]))
     story.append(mnt_table)
+    story.append(Spacer(1, 20))
+    
+    # Added items/purchases section
+    story.append(Paragraph(shape("البضائع والمشتريات المضافة للمخازن اليوم:"), cell_style_bold))
+    story.append(Spacer(1, 5))
+    
+    added_headers = [
+        Paragraph(shape("الماركة"), header_style),
+        Paragraph(shape("المنتج"), header_style),
+        Paragraph(shape("الرقم التسلسلي / IMEI"), header_style),
+        Paragraph(shape("تكلفة الشراء"), header_style)
+    ]
+    added_rows = [added_headers]
+    for item in added_items:
+        prod_brand = item.product.brand if item.product else "-"
+        prod_name = item.product.name if item.product else "-"
+        prod_cost = f"{item.product.purchase_price:,.0f} د.ع" if item.product else "0 د.ع"
+        added_rows.append([
+            Paragraph(shape(prod_brand), cell_style),
+            Paragraph(shape(prod_name), cell_style),
+            Paragraph(shape(item.imei or "بدون سيريال"), cell_style_center),
+            Paragraph(shape(prod_cost), cell_style)
+        ])
+        
+    if len(added_items) == 0:
+        added_rows.append([Paragraph(shape("لم يتم إضافة أي بضائع جديدة للمخزن اليوم"), cell_style_center), "", "", ""])
+        
+    added_table = Table(added_rows, colWidths=[120, 140, 130, 110])
+    added_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e293b')),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+    ]))
+    story.append(added_table)
     story.append(Spacer(1, 20))
     
     # Low stock alerts section

@@ -53,9 +53,21 @@ def stop_bot_process():
 async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            try:
+                conn.execute(text("ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID"))
+                print("Migration: Added used_product_id column to maintenance_jobs")
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
+                print("Migration: Added created_at column to inventory_items")
+            except Exception:
+                pass
         start_bot_process()
     except Exception as e:
-        print(f"Database connection failed: {e}. Skipping table creation.")
+        print(f"Database startup failed: {e}.")
     yield
     stop_bot_process()
 
@@ -188,10 +200,17 @@ def read_maintenance_jobs(skip: int = 0, limit: int = 100, db: Session = Depends
 class UpdateMaintenanceJobRequest(BaseModel):
     status: str
     cost: Optional[float] = None
+    used_product_id: Optional[str] = None
 
 @app.put("/maintenance/{job_id}/", response_model=schemas.MaintenanceJobResponse)
 def update_maintenance_job(job_id: str, request: UpdateMaintenanceJobRequest, db: Session = Depends(get_db)):
-    db_job = crud.update_maintenance_job(db=db, job_id=job_id, status=request.status, cost=request.cost)
+    db_job = crud.update_maintenance_job(
+        db=db, 
+        job_id=job_id, 
+        status=request.status, 
+        cost=request.cost,
+        used_product_id=request.used_product_id
+    )
     if not db_job:
         raise HTTPException(status_code=404, detail="Maintenance job not found")
     return db_job

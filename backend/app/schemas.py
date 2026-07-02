@@ -174,6 +174,7 @@ class MaintenanceJobBase(BaseModel):
     cost: Decimal = Field(default=Decimal("0.00"), ge=0)
     status: str = "Under Inspection"
     warranty_days: Optional[int] = 30
+    used_product_id: Optional[UUID] = None
 
 class MaintenanceJobCreate(MaintenanceJobBase):
     pass

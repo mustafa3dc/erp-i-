@@ -2880,6 +2880,7 @@
             const [problem, setProblem] = useState('');
             const [cost, setCost] = useState('');
             const [warrantyDays, setWarrantyDays] = useState('30');
+            const [usedProductId, setUsedProductId] = useState('');
             const [errorMsg, setErrorMsg] = useState('');
             const [activeTab, setActiveTab] = useState('All');
             const [searchQuery, setSearchQuery] = useState('');
@@ -2904,7 +2905,8 @@
                         problem_description: problem || null,
                         cost: parseFloat(cost) || 0,
                         status: "Under Inspection",
-                        warranty_days: parseInt(warrantyDays) || 30
+                        warranty_days: parseInt(warrantyDays) || 30,
+                        used_product_id: usedProductId || null
                     });
                     // Reset
                     setCustomerName('');
@@ -2914,6 +2916,7 @@
                     setProblem('');
                     setCost('');
                     setWarrantyDays('30');
+                    setUsedProductId('');
                     setShowAddForm(false);
                     refresh();
                 } catch (err) {
@@ -3143,6 +3146,24 @@
                                 </div>
                             </div>
                             <div>
+                                <label class="block text-xs text-slate-400 mb-1">قطع الغيار المستخدمة (اختياري)</label>
+                                <select 
+                                    value={usedProductId} 
+                                    onChange={e => setUsedProductId(e.target.value)} 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500"
+                                >
+                                    <option value="">-- بدون قطعة غيار --</option>
+                                    {products.filter(p => p.type === 'Maintenance').map(p => {
+                                        const qty = p.items.filter(i => i.status === 'Available').length;
+                                        return (
+                                            <option key={p.id} value={p.id} disabled={qty === 0}>
+                                                {p.brand} - {p.name} (المتوفر: {qty} قطع)
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+                            <div>
                                 <label class="block text-xs text-slate-400 mb-1">توصيف المشكلة والقطع المستبدلة</label>
                                 <div class="flex flex-wrap gap-1.5 mb-2.5">
                                     {["تبديل شاشة", "تبديل بطارية", "تبديل ظهر", "مشكلة بالبورد", "قاعدة شحن", "صيانة سماعة/مايك"].map(prob => (
@@ -3207,19 +3228,46 @@
                                                 <div class="font-bold text-slate-200">{job.device_model}</div>
                                                 {job.imei && <span class="text-[10px] text-slate-500 font-mono block mt-0.5">IMEI: {job.imei}</span>}
                                                 {(() => {
-                                                    const cleanJobModel = job.device_model.trim().toLowerCase();
-                                                    const modelOnly = cleanJobModel.includes(' - ') ? cleanJobModel.split(' - ')[1].trim() : cleanJobModel;
-                                                    const partsInStock = cleanJobModel.length >= 2 ? products.filter(p => 
-                                                        p.type === 'Maintenance' && 
-                                                        (p.name.toLowerCase().includes(cleanJobModel) || p.name.toLowerCase().includes(modelOnly)) && 
-                                                        p.items.some(i => i.status === 'Available')
-                                                    ) : [];
-                                                    
-                                                    if (partsInStock.length > 0 && job.status !== 'Delivered') {
+                                                    if (job.used_product_id) {
+                                                        const usedPart = products.find(p => p.id === job.used_product_id);
+                                                        if (usedPart) {
+                                                            return (
+                                                                <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1">
+                                                                    🛠️ القطعة: {usedPart.brand} - {usedPart.name}
+                                                                </span>
+                                                            );
+                                                        }
+                                                    } else if (job.status !== 'Delivered') {
                                                         return (
-                                                            <span class="text-[10px] text-emerald-500 font-bold flex items-center gap-1 mt-1">
-                                                                ✓ متوفر {partsInStock.length} قطع غيار بالمخزن
-                                                            </span>
+                                                            <div class="mt-1">
+                                                                <select 
+                                                                    value={job.used_product_id || ''} 
+                                                                    onChange={async (e) => {
+                                                                        const val = e.target.value;
+                                                                        try {
+                                                                            await axios.put(`/maintenance/${job.id}/`, {
+                                                                                status: job.status,
+                                                                                cost: parseFloat(job.cost) || 0,
+                                                                                used_product_id: val || null
+                                                                            });
+                                                                            refresh();
+                                                                        } catch(err) {
+                                                                            alert("حدث خطأ أثناء ربط قطعة الغيار بالجهاز.");
+                                                                        }
+                                                                    }}
+                                                                    class="text-[10px] bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-slate-400 focus:outline-none focus:border-brand-500"
+                                                                >
+                                                                    <option value="">-- ربط قطعة غيار (اختياري) --</option>
+                                                                    {products.filter(p => p.type === 'Maintenance').map(p => {
+                                                                        const qty = p.items.filter(i => i.status === 'Available').length;
+                                                                        return (
+                                                                            <option key={p.id} value={p.id} disabled={qty === 0}>
+                                                                                {p.brand} - {p.name} (المتوفر: {qty} قطع)
+                                                                            </option>
+                                                                        );
+                                                                    })}
+                                                                </select>
+                                                            </div>
                                                         );
                                                     }
                                                     return null;

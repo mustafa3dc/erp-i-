@@ -92,6 +92,7 @@ class InventoryItem(Base):
     imei = Column(String, unique=True, nullable=True, index=True)
     status = Column(Enum(InventoryStatus), nullable=False, default=InventoryStatus.AVAILABLE)
     battery_health = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     product = relationship("Product", back_populates="items")
 
@@ -138,5 +139,8 @@ class MaintenanceJob(Base):
     warranty_days = Column(Integer, nullable=True, default=30)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    used_product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
+    used_product = relationship("Product")
 
 
