@@ -7,8 +7,9 @@ from decimal import Decimal
 # Add current folder to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from sqlalchemy.orm import joinedload
 from app.database import SessionLocal
-from app.models import Sale, MaintenanceJob, Product, InventoryStatus
+from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem
 
 # PDF Generation Libraries
 from reportlab.lib.pagesizes import letter
@@ -51,7 +52,9 @@ def get_today_stats():
         start_dt = datetime.datetime.combine(today, datetime.time.min).astimezone()
         end_dt = datetime.datetime.combine(today, datetime.time.max).astimezone()
         
-        sales = db.query(Sale).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
+        sales = db.query(Sale).options(
+            joinedload(Sale.items).joinedload(SaleItem.product)
+        ).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
         maintenance = db.query(MaintenanceJob).filter(
             MaintenanceJob.updated_at >= start_dt, 
             MaintenanceJob.updated_at <= end_dt,
