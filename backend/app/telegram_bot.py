@@ -75,18 +75,102 @@ def get_all_inventory():
     finally:
         db.close()
 
-def run_bot():
+def get_telegram_token():
     token_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_token.txt")
     if not os.path.exists(token_path):
-        print("Telegram bot token file not found. Put token in backend/app/telegram_token.txt")
-        return
-
+        return None
     with open(token_path, "r", encoding="utf-8") as f:
-        token = f.read().strip()
+        return f.read().strip()
 
+def register_chat_id(chat_id):
+    try:
+        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "registered_chats.txt")
+        existing = set()
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
+                existing = {line.strip() for line in f if line.strip()}
+        
+        if str(chat_id) not in existing:
+            with open(filepath, "a") as f:
+                f.write(f"{chat_id}\n")
+    except Exception as e:
+        print(f"Error registering chat: {e}")
+
+def send_daily_report_to_all_chats():
+    token = get_telegram_token()
     if not token or token == "YOUR_TOKEN_HERE":
-        print("Telegram bot token is empty. Please configure it in settings.")
+        print("No Telegram token available for daily report.")
         return
+        
+    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "registered_chats.txt")
+    if not os.path.exists(filepath):
+        print("No registered chats for daily report.")
+        return
+        
+    with open(filepath, "r") as f:
+        chat_ids = [line.strip() for line in f if line.strip()]
+        
+    if not chat_ids:
+        return
+        
+    pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "daily_report.pdf")
+    try:
+        from report_generator import generate_daily_report_pdf
+        generate_daily_report_pdf(pdf_path)
+    except Exception as e:
+        print(f"Error generating daily PDF report: {e}")
+        return
+        
+    api_url = f"https://api.telegram.org/bot{token}"
+    for cid in chat_ids:
+        try:
+            with open(pdf_path, "rb") as pdf:
+                files = {'document': pdf}
+                payload = {
+                    'chat_id': cid,
+                    'caption': "📊 التقرير المالي والتشغيلي اليومي المكتمل لمتجر M MOBILE",
+                    'parse_mode': 'Markdown'
+                }
+                requests.post(f"{api_url}/sendDocument", data=payload, files=files)
+        except Exception as e:
+            print(f"Error sending document to {cid}: {e}")
+            
+    try:
+        os.remove(pdf_path)
+    except Exception:
+        pass
+
+def daily_report_scheduler_loop():
+    import datetime
+    import time
+    print("Daily PDF Report Scheduler started.")
+    last_sent_date = None
+    
+    while True:
+        try:
+            now = datetime.datetime.now()
+            # Send at 00:05 AM (midnight plus 5 minutes)
+            if now.hour == 0 and now.minute == 5:
+                current_date = now.date()
+                if last_sent_date != current_date:
+                    print(f"Time is {now.strftime('%H:%M')}. Generating and sending daily PDF report...")
+                    send_daily_report_to_all_chats()
+                    last_sent_date = current_date
+        except Exception as e:
+            print(f"Error in daily report scheduler: {e}")
+            
+        time.sleep(30)
+
+def run_bot():
+    token = get_telegram_token()
+    if not token or token == "YOUR_TOKEN_HERE":
+        print("Telegram bot token is empty or missing. Please configure it.")
+        return
+
+    # Start daily report scheduler thread
+    import threading
+    scheduler_thread = threading.Thread(target=daily_report_scheduler_loop, daemon=True)
+    scheduler_thread.start()
 
     print(f"Starting Telegram Bot with token: {token[:10]}...")
     api_url = f"https://api.telegram.org/bot{token}"
@@ -121,6 +205,8 @@ def run_bot():
 
                 if not chat_id or not text:
                     continue
+
+                register_chat_id(chat_id)
 
                 if text.lower() == "/start":
                     welcome_msg = (

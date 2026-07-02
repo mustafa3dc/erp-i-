@@ -6,4 +6,7 @@ pydantic>=1.10.0
 pytest>=7.0.0
 requests>=2.28.0
 httpx>=0.24.0
+reportlab>=4.0.0
+arabic-reshaper>=3.0.0
+python-bidi>=0.4.2
 
