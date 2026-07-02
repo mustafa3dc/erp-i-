@@ -48,8 +48,8 @@ def get_today_stats():
     db = SessionLocal()
     try:
         today = datetime.datetime.now().date()
-        start_dt = datetime.datetime.combine(today, datetime.time.min)
-        end_dt = datetime.datetime.combine(today, datetime.time.max)
+        start_dt = datetime.datetime.combine(today, datetime.time.min).astimezone()
+        end_dt = datetime.datetime.combine(today, datetime.time.max).astimezone()
         
         sales = db.query(Sale).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
         maintenance = db.query(MaintenanceJob).filter(
