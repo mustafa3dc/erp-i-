@@ -23,31 +23,31 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import arabic_reshaper
 from bidi.algorithm import get_display
 
-FONT_REGULAR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Tajawal-Regular.ttf")
-FONT_BOLD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Tajawal-Bold.ttf")
+FONT_REGULAR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Amiri-Regular.ttf")
+FONT_BOLD_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Amiri-Bold.ttf")
 
 try:
     if os.path.exists(FONT_REGULAR_PATH):
-        pdfmetrics.registerFont(TTFont('Tajawal', FONT_REGULAR_PATH))
+        pdfmetrics.registerFont(TTFont('Amiri', FONT_REGULAR_PATH))
     else:
-        print("Downloading Tajawal Arabic font...")
-        FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Regular.ttf"
+        print("Downloading Amiri Arabic font...")
+        FONT_URL = "https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Regular.ttf"
         r = requests.get(FONT_URL, timeout=15)
         with open(FONT_REGULAR_PATH, "wb") as f:
             f.write(r.content)
-        pdfmetrics.registerFont(TTFont('Tajawal', FONT_REGULAR_PATH))
+        pdfmetrics.registerFont(TTFont('Amiri', FONT_REGULAR_PATH))
 
     if os.path.exists(FONT_BOLD_PATH):
-        pdfmetrics.registerFont(TTFont('TajawalBold', FONT_BOLD_PATH))
+        pdfmetrics.registerFont(TTFont('AmiriBold', FONT_BOLD_PATH))
     else:
-        print("Downloading Tajawal Bold Arabic font...")
-        FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Bold.ttf"
+        print("Downloading Amiri Bold Arabic font...")
+        FONT_URL = "https://github.com/google/fonts/raw/main/ofl/amiri/Amiri-Bold.ttf"
         r = requests.get(FONT_URL, timeout=15)
         with open(FONT_BOLD_PATH, "wb") as f:
             f.write(r.content)
-        pdfmetrics.registerFont(TTFont('TajawalBold', FONT_BOLD_PATH))
+        pdfmetrics.registerFont(TTFont('AmiriBold', FONT_BOLD_PATH))
 except Exception as e:
-    print(f"Error loading Tajawal fonts: {e}")
+    print(f"Error loading Amiri fonts: {e}")
 
 def shape(text):
     if not text:
@@ -113,9 +113,9 @@ def generate_daily_report_pdf(pdf_path):
     title_style = ParagraphStyle(
         'ArabicTitle',
         parent=styles['Normal'],
-        fontName='TajawalBold',
-        fontSize=18,
-        leading=22,
+        fontName='AmiriBold',
+        fontSize=20,
+        leading=24,
         textColor=colors.HexColor('#0f172a'),
         alignment=1 # Centered
     )
@@ -123,9 +123,9 @@ def generate_daily_report_pdf(pdf_path):
     subtitle_style = ParagraphStyle(
         'ArabicSubtitle',
         parent=styles['Normal'],
-        fontName='Tajawal',
-        fontSize=10,
-        leading=14,
+        fontName='Amiri',
+        fontSize=12,
+        leading=16,
         textColor=colors.HexColor('#64748b'),
         alignment=1 # Centered
     )
@@ -133,9 +133,9 @@ def generate_daily_report_pdf(pdf_path):
     cell_style = ParagraphStyle(
         'ArabicCell',
         parent=styles['Normal'],
-        fontName='Tajawal',
-        fontSize=8.5,
-        leading=13,
+        fontName='Amiri',
+        fontSize=10,
+        leading=14,
         textColor=colors.HexColor('#334155'),
         alignment=2 # Right-aligned
     )
@@ -149,17 +149,17 @@ def generate_daily_report_pdf(pdf_path):
     cell_style_bold = ParagraphStyle(
         'ArabicCellBold',
         parent=cell_style,
-        fontName='TajawalBold',
-        fontSize=9.5,
+        fontName='AmiriBold',
+        fontSize=11,
         textColor=colors.HexColor('#0f172a')
     )
     
     header_style = ParagraphStyle(
         'ArabicHeader',
         parent=styles['Normal'],
-        fontName='TajawalBold',
-        fontSize=9,
-        leading=14,
+        fontName='AmiriBold',
+        fontSize=11,
+        leading=15,
         textColor=colors.white,
         alignment=1 # Centered
     )
