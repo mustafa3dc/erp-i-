@@ -320,7 +320,28 @@ def create_maintenance_job(db: Session, job: schemas.MaintenanceJobCreate):
         warranty_days=job.warranty_days,
         used_product_id=job.used_product_id
     )
-    # If starting as Repaired or Delivered, consume the spare part immediately
+    db.add(db_job)
+    db.flush() # get db_job.id
+
+    # Handle multiple spare parts
+    if job.used_part_ids:
+        for p_id in job.used_part_ids:
+            part = models.MaintenancePart(
+                maintenance_job_id=db_job.id,
+                product_id=p_id
+            )
+            db.add(part)
+            
+            # If starting as completed, consume immediately
+            if job.status in ["Repaired", "Delivered"]:
+                inv_item = db.query(models.InventoryItem).filter(
+                    models.InventoryItem.product_id == p_id,
+                    models.InventoryItem.status == models.InventoryStatus.AVAILABLE
+                ).first()
+                if inv_item:
+                    inv_item.status = models.InventoryStatus.SOLD
+
+    # Eagerly consume the legacy single used_product_id too if starting as completed
     if job.status in ["Repaired", "Delivered"] and job.used_product_id:
         inv_item = db.query(models.InventoryItem).filter(
             models.InventoryItem.product_id == job.used_product_id,
@@ -329,7 +350,6 @@ def create_maintenance_job(db: Session, job: schemas.MaintenanceJobCreate):
         if inv_item:
             inv_item.status = models.InventoryStatus.SOLD
 
-    db.add(db_job)
     db.commit()
     db.refresh(db_job)
     return db_job
@@ -339,15 +359,12 @@ def get_maintenance_jobs(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.MaintenanceJob).order_by(models.MaintenanceJob.created_at.desc()).offset(skip).limit(limit).all()
 
 
-def update_maintenance_job(db: Session, job_id: str, status: str, cost: float = None, used_product_id: str = None):
+def update_maintenance_job(db: Session, job_id: str, status: str, cost: float = None, used_product_id: str = None, used_part_ids: list = None):
     from uuid import UUID
     job_uuid = UUID(job_id) if isinstance(job_id, str) else job_id
     db_job = db.query(models.MaintenanceJob).filter(models.MaintenanceJob.id == job_uuid).first()
     if db_job:
-        # Check if it was already delivered to prevent duplicate accounting entries
         already_delivered = db_job.status == "Delivered"
-        
-        # Check if transitioning to completed (Repaired or Delivered) to consume spare part
         was_completed = db_job.status in ["Repaired", "Delivered"]
         
         db_job.status = status
@@ -356,15 +373,37 @@ def update_maintenance_job(db: Session, job_id: str, status: str, cost: float = 
         if used_product_id is not None:
             db_job.used_product_id = UUID(used_product_id) if used_product_id else None
 
+        # Update multiple parts if provided
+        if used_part_ids is not None:
+            # Delete old parts associated with this job
+            db.query(models.MaintenancePart).filter(models.MaintenancePart.maintenance_job_id == db_job.id).delete()
+            # Create new ones
+            for p_id in used_part_ids:
+                part = models.MaintenancePart(
+                    maintenance_job_id=db_job.id,
+                    product_id=UUID(p_id) if isinstance(p_id, str) else p_id
+                )
+                db.add(part)
+
         # Eagerly consume if transitioning to a completed state
         is_completed = status in ["Repaired", "Delivered"]
-        if is_completed and not was_completed and db_job.used_product_id:
-            inv_item = db.query(models.InventoryItem).filter(
-                models.InventoryItem.product_id == db_job.used_product_id,
-                models.InventoryItem.status == models.InventoryStatus.AVAILABLE
-            ).first()
-            if inv_item:
-                inv_item.status = models.InventoryStatus.SOLD
+        if is_completed and not was_completed:
+            # Consume legacy single product
+            if db_job.used_product_id:
+                inv_item = db.query(models.InventoryItem).filter(
+                    models.InventoryItem.product_id == db_job.used_product_id,
+                    models.InventoryItem.status == models.InventoryStatus.AVAILABLE
+                ).first()
+                if inv_item:
+                    inv_item.status = models.InventoryStatus.SOLD
+            # Consume new multiple parts
+            for part in db_job.parts:
+                inv_item = db.query(models.InventoryItem).filter(
+                    models.InventoryItem.product_id == part.product_id,
+                    models.InventoryItem.status == models.InventoryStatus.AVAILABLE
+                ).first()
+                if inv_item:
+                    inv_item.status = models.InventoryStatus.SOLD
         
         if status == "Delivered" and not already_delivered and db_job.cost > 0:
             cash_account = _get_or_create_account(db, "1010", "Cash (الصندوق)", models.AccountType.ASSET)

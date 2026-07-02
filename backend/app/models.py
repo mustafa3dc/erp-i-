@@ -142,5 +142,17 @@ class MaintenanceJob(Base):
     
     used_product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
     used_product = relationship("Product")
+    parts = relationship("MaintenancePart", back_populates="maintenance_job", cascade="all, delete-orphan")
+
+
+class MaintenancePart(Base):
+    __tablename__ = "maintenance_parts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    maintenance_job_id = Column(UUID(as_uuid=True), ForeignKey("maintenance_jobs.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
+
+    maintenance_job = relationship("MaintenanceJob", back_populates="parts")
+    product = relationship("Product")
 
 

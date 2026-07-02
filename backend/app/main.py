@@ -63,6 +63,12 @@ async def lifespan(app: FastAPI):
             try:
                 conn.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
                 print("Migration: Added created_at column to inventory_items")
+                # One-time reset for existing items (SQLite/PostgreSQL fallback)
+                try:
+                    conn.execute(text("UPDATE inventory_items SET created_at = '2026-06-01 00:00:00+00' WHERE created_at < NOW() - INTERVAL '5 minutes'"))
+                except Exception:
+                    conn.execute(text("UPDATE inventory_items SET created_at = '2026-06-01 00:00:00' WHERE created_at < datetime('now', '-5 minutes')"))
+                print("Migration: Reset existing inventory_items created_at to past date")
             except Exception:
                 pass
         start_bot_process()
@@ -201,6 +207,7 @@ class UpdateMaintenanceJobRequest(BaseModel):
     status: str
     cost: Optional[float] = None
     used_product_id: Optional[str] = None
+    used_part_ids: Optional[List[str]] = None
 
 @app.put("/maintenance/{job_id}/", response_model=schemas.MaintenanceJobResponse)
 def update_maintenance_job(job_id: str, request: UpdateMaintenanceJobRequest, db: Session = Depends(get_db)):
@@ -209,7 +216,8 @@ def update_maintenance_job(job_id: str, request: UpdateMaintenanceJobRequest, db
         job_id=job_id, 
         status=request.status, 
         cost=request.cost,
-        used_product_id=request.used_product_id
+        used_product_id=request.used_product_id,
+        used_part_ids=request.used_part_ids
     )
     if not db_job:
         raise HTTPException(status_code=404, detail="Maintenance job not found")

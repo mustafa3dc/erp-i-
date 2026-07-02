@@ -7,13 +7,14 @@ from decimal import Decimal
 # Add current folder to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import SessionLocal
-from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem, InventoryItem
+from app.database import SessionLocal, engine, Base
+from app.models import Sale, MaintenanceJob, Product, InventoryStatus, SaleItem, InventoryItem, MaintenancePart
 from sqlalchemy.orm import joinedload
 
 # Run simple migration queries to add new columns to existing databases safely
 db_mig = SessionLocal()
 try:
+    Base.metadata.create_all(bind=engine)
     from sqlalchemy import text
     try:
         db_mig.execute(text("ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID"))
@@ -86,7 +87,8 @@ def get_today_stats():
         ).filter(Sale.sale_date >= start_dt, Sale.sale_date <= end_dt).all()
         
         maintenance = db.query(MaintenanceJob).options(
-            joinedload(MaintenanceJob.used_product)
+            joinedload(MaintenanceJob.used_product),
+            joinedload(MaintenanceJob.parts).joinedload(MaintenancePart.product)
         ).filter(
             MaintenanceJob.updated_at >= start_dt, 
             MaintenanceJob.updated_at <= end_dt,
@@ -131,6 +133,9 @@ def generate_daily_report_pdf(pdf_path):
     for m in maintenance:
         if m.used_product:
             total_maintenance_parts_cost += Decimal(m.used_product.purchase_price or 0)
+        for part in m.parts:
+            if part.product:
+                total_maintenance_parts_cost += Decimal(part.product.purchase_price or 0)
             
     net_maintenance_profit = total_maintenance_revenue - total_maintenance_parts_cost
     
@@ -286,7 +291,13 @@ def generate_daily_report_pdf(pdf_path):
     ]
     mnt_rows = [mnt_headers]
     for m in maintenance:
-        part_name = f"{m.used_product.brand} {m.used_product.name}" if m.used_product else "لا يوجد"
+        parts_list = []
+        if m.used_product:
+            parts_list.append(f"{m.used_product.brand} {m.used_product.name}")
+        for part in m.parts:
+            if part.product:
+                parts_list.append(f"{part.product.brand} {part.product.name}")
+        part_name = ", ".join(parts_list) if parts_list else "لا يوجد"
         mnt_rows.append([
             Paragraph(shape(m.customer_name), cell_style),
             Paragraph(shape(m.device_model), cell_style),

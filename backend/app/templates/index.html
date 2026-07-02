@@ -2881,6 +2881,7 @@
             const [cost, setCost] = useState('');
             const [warrantyDays, setWarrantyDays] = useState('30');
             const [usedProductId, setUsedProductId] = useState('');
+            const [usedPartIds, setUsedPartIds] = useState([]);
             const [errorMsg, setErrorMsg] = useState('');
             const [activeTab, setActiveTab] = useState('All');
             const [searchQuery, setSearchQuery] = useState('');
@@ -2906,7 +2907,8 @@
                         cost: parseFloat(cost) || 0,
                         status: "Under Inspection",
                         warranty_days: parseInt(warrantyDays) || 30,
-                        used_product_id: usedProductId || null
+                        used_product_id: usedProductId || null,
+                        used_part_ids: usedPartIds
                     });
                     // Reset
                     setCustomerName('');
@@ -2917,6 +2919,7 @@
                     setCost('');
                     setWarrantyDays('30');
                     setUsedProductId('');
+                    setUsedPartIds([]);
                     setShowAddForm(false);
                     refresh();
                 } catch (err) {
@@ -3146,22 +3149,38 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-400 mb-1">قطع الغيار المستخدمة (اختياري)</label>
-                                <select 
-                                    value={usedProductId} 
-                                    onChange={e => setUsedProductId(e.target.value)} 
-                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500"
-                                >
-                                    <option value="">-- بدون قطعة غيار --</option>
+                                <label class="block text-xs text-slate-400 mb-1.5">قطع الغيار المستخدمة (يمكن اختيار أكثر من قطعة)</label>
+                                <div class="grid grid-cols-2 gap-2 bg-slate-950 p-3 border border-slate-850 rounded-2xl max-h-[160px] overflow-y-auto">
                                     {products.filter(p => p.type === 'Maintenance').map(p => {
                                         const qty = p.items.filter(i => i.status === 'Available').length;
+                                        const isChecked = usedPartIds.includes(p.id);
                                         return (
-                                            <option key={p.id} value={p.id} disabled={qty === 0}>
-                                                {p.brand} - {p.name} (المتوفر: {qty} قطع)
-                                            </option>
+                                            <label 
+                                                key={p.id} 
+                                                class={`flex items-center gap-2 p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                                                    isChecked 
+                                                    ? 'bg-brand-500/10 text-brand-600 border-brand-500/20' 
+                                                    : 'bg-slate-900/40 text-slate-400 border-slate-800 hover:text-slate-200'
+                                                }`}
+                                            >
+                                                <input 
+                                                    type="checkbox" 
+                                                    disabled={qty === 0 && !isChecked}
+                                                    checked={isChecked}
+                                                    onChange={e => {
+                                                        if (e.target.checked) {
+                                                            setUsedPartIds([...usedPartIds, p.id]);
+                                                        } else {
+                                                            setUsedPartIds(usedPartIds.filter(id => id !== p.id));
+                                                        }
+                                                    }}
+                                                    class="rounded text-brand-600 focus:ring-brand-500" 
+                                                />
+                                                <span class="truncate">{p.brand} - {p.name} (المتوفر: {qty})</span>
+                                            </label>
                                         );
                                     })}
-                                </select>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs text-slate-400 mb-1">توصيف المشكلة والقطع المستبدلة</label>
@@ -3228,49 +3247,79 @@
                                                 <div class="font-bold text-slate-200">{job.device_model}</div>
                                                 {job.imei && <span class="text-[10px] text-slate-500 font-mono block mt-0.5">IMEI: {job.imei}</span>}
                                                 {(() => {
-                                                    if (job.used_product_id) {
-                                                        const usedPart = products.find(p => p.id === job.used_product_id);
-                                                        if (usedPart) {
-                                                            return (
-                                                                <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1 mt-1">
-                                                                    🛠️ القطعة: {usedPart.brand} - {usedPart.name}
-                                                                </span>
-                                                            );
-                                                        }
-                                                    } else if (job.status !== 'Delivered') {
-                                                        return (
-                                                            <div class="mt-1">
-                                                                <select 
-                                                                    value={job.used_product_id || ''} 
-                                                                    onChange={async (e) => {
-                                                                        const val = e.target.value;
-                                                                        try {
-                                                                            await axios.put(`/maintenance/${job.id}/`, {
-                                                                                status: job.status,
-                                                                                cost: parseFloat(job.cost) || 0,
-                                                                                used_product_id: val || null
-                                                                            });
-                                                                            refresh();
-                                                                        } catch(err) {
-                                                                            alert("حدث خطأ أثناء ربط قطعة الغيار بالجهاز.");
-                                                                        }
-                                                                    }}
-                                                                    class="text-[10px] bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-slate-400 focus:outline-none focus:border-brand-500"
-                                                                >
-                                                                    <option value="">-- ربط قطعة غيار (اختياري) --</option>
+                                                    const linkedParts = job.parts || [];
+                                                    const hasLegacy = !!job.used_product_id;
+                                                    
+                                                    return (
+                                                        <div class="mt-1 space-y-1">
+                                                            {/* Display legacy part if any */}
+                                                            {hasLegacy && (() => {
+                                                                const lp = products.find(p => p.id === job.used_product_id);
+                                                                return lp ? (
+                                                                    <div class="text-[10px] text-amber-500 font-bold mb-1">
+                                                                        🛠️ {lp.brand} - {lp.name}
+                                                                    </div>
+                                                                ) : null;
+                                                            })()}
+                                                            
+                                                            {/* Display linked parts as green tags */}
+                                                            {linkedParts.length > 0 && (
+                                                                <div class="flex flex-wrap gap-1 mb-1">
+                                                                    {linkedParts.map(part => {
+                                                                        const prod = products.find(p => p.id === part.product_id);
+                                                                        return prod ? (
+                                                                            <span key={part.id} class="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-600 font-bold rounded">
+                                                                                ✓ {prod.name}
+                                                                            </span>
+                                                                        ) : null;
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Tag selectors for linking/unlinking if not delivered */}
+                                                            {job.status !== 'Delivered' && (
+                                                                <div class="flex flex-wrap gap-1 max-w-[280px] mt-1">
                                                                     {products.filter(p => p.type === 'Maintenance').map(p => {
                                                                         const qty = p.items.filter(i => i.status === 'Available').length;
+                                                                        const isLinked = linkedParts.some(part => part.product_id === p.id);
+                                                                        // Hide if not linked and no inventory available to keep it clean
+                                                                        if (qty === 0 && !isLinked) return null;
                                                                         return (
-                                                                            <option key={p.id} value={p.id} disabled={qty === 0}>
-                                                                                {p.brand} - {p.name} (المتوفر: {qty} قطع)
-                                                                            </option>
+                                                                            <button 
+                                                                                key={p.id}
+                                                                                onClick={async () => {
+                                                                                    let nextPartIds = linkedParts.map(part => part.product_id);
+                                                                                    if (isLinked) {
+                                                                                        nextPartIds = nextPartIds.filter(id => id !== p.id);
+                                                                                    } else {
+                                                                                        nextPartIds.push(p.id);
+                                                                                    }
+                                                                                    try {
+                                                                                        await axios.put(`/maintenance/${job.id}/`, {
+                                                                                            status: job.status,
+                                                                                            cost: parseFloat(job.cost) || 0,
+                                                                                            used_product_id: job.used_product_id,
+                                                                                            used_part_ids: nextPartIds
+                                                                                        });
+                                                                                        refresh();
+                                                                                    } catch(err) {
+                                                                                        alert("حدث خطأ أثناء ربط قطعة الغيار.");
+                                                                                    }
+                                                                                }}
+                                                                                class={`px-1.5 py-0.5 rounded text-[8.5px] font-bold border transition-all ${
+                                                                                    isLinked 
+                                                                                    ? 'bg-brand-500/10 text-brand-600 border-brand-500/20' 
+                                                                                    : 'bg-slate-950 text-slate-500 border-slate-850 hover:text-slate-350'
+                                                                                }`}
+                                                                            >
+                                                                                {isLinked ? '✓' : '+'} {p.name}
+                                                                            </button>
                                                                         );
                                                                     })}
-                                                                </select>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
                                                 })()}
                                             </td>
 

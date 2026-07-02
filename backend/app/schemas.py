@@ -165,6 +165,12 @@ class SaleResponse(SaleBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MaintenancePartResponse(BaseModel):
+    id: UUID
+    product_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
 class MaintenanceJobBase(BaseModel):
     customer_name: str
     customer_phone: Optional[str] = None
@@ -175,6 +181,7 @@ class MaintenanceJobBase(BaseModel):
     status: str = "Under Inspection"
     warranty_days: Optional[int] = 30
     used_product_id: Optional[UUID] = None
+    used_part_ids: Optional[List[UUID]] = None
 
 class MaintenanceJobCreate(MaintenanceJobBase):
     pass
@@ -183,5 +190,6 @@ class MaintenanceJobResponse(MaintenanceJobBase):
     id: UUID
     created_at: DateTimeUTC
     updated_at: DateTimeUTC
+    parts: List[MaintenancePartResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
