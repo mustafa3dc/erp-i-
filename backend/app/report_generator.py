@@ -74,13 +74,14 @@ def shape(text):
     reshaped = arabic_reshaper.reshape(str(text))
     return get_display(reshaped)
 
-def get_today_stats():
+def get_today_stats(target_date=None):
     db = SessionLocal()
     try:
-        today = datetime.datetime.now().date()
+        if target_date is None:
+            target_date = datetime.datetime.now().date()
         # Convert to timezone-aware datetimes (system local timezone)
-        start_dt = datetime.datetime.combine(today, datetime.time.min).astimezone()
-        end_dt = datetime.datetime.combine(today, datetime.time.max).astimezone()
+        start_dt = datetime.datetime.combine(target_date, datetime.time.min).astimezone()
+        end_dt = datetime.datetime.combine(target_date, datetime.time.max).astimezone()
         
         sales = db.query(Sale).options(
             joinedload(Sale.items).joinedload(SaleItem.product)
@@ -113,8 +114,10 @@ def get_today_stats():
     finally:
         db.close()
 
-def generate_daily_report_pdf(pdf_path):
-    sales, maintenance, low_stock, added_items = get_today_stats()
+def generate_daily_report_pdf(pdf_path, target_date=None):
+    if target_date is None:
+        target_date = datetime.datetime.now().date()
+    sales, maintenance, low_stock, added_items = get_today_stats(target_date)
     
     # Calculate Summary Totals
     total_sales_amount = sum(Decimal(s.total_amount) for s in sales)
@@ -212,8 +215,8 @@ def generate_daily_report_pdf(pdf_path):
     
     # Title
     story.append(Paragraph(shape("التقرير اليومي لمتجر M MOBILE"), title_style))
-    today_str = datetime.date.today().strftime('%d/%m/%Y')
-    story.append(Paragraph(shape(f"تاريخ التقرير: {today_str}"), subtitle_style))
+    report_date_str = target_date.strftime('%d/%m/%Y')
+    story.append(Paragraph(shape(f"تاريخ التقرير: {report_date_str}"), subtitle_style))
     story.append(Spacer(1, 15))
     
     # Financial Summary Section
@@ -227,7 +230,6 @@ def generate_daily_report_pdf(pdf_path):
         [Paragraph(shape("إيرادات قسم الصيانة:"), cell_style_bold), Paragraph(shape(f"{total_maintenance_revenue:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("تكلفة قطع الغيار المستخدمة:"), cell_style_bold), Paragraph(shape(f"{total_maintenance_parts_cost:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("صافي أرباح قسم الصيانة:"), cell_style_bold), Paragraph(shape(f"{net_maintenance_profit:,.2f} د.ع"), cell_style)],
-        [Paragraph(shape("تكلفة البضائع المضافة للمخازن اليوم:"), cell_style_bold), Paragraph(shape(f"{total_purchases_cost:,.2f} د.ع"), cell_style)],
         [Paragraph(shape("صافي الأرباح الكلي المنجز:"), cell_style_bold), Paragraph(shape(f"{total_profit:,.2f} د.ع"), cell_style)]
     ]
     

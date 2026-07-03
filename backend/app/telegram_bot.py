@@ -136,7 +136,7 @@ def register_chat_id(chat_id):
     except Exception as e:
         print(f"Error registering chat: {e}")
 
-def send_daily_report_to_all_chats():
+def send_daily_report_to_all_chats(target_date=None):
     token = get_telegram_token()
     if not token or token == "YOUR_TOKEN_HERE":
         print("No Telegram token available for daily report.")
@@ -156,7 +156,7 @@ def send_daily_report_to_all_chats():
     pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "daily_report.pdf")
     try:
         from report_generator import generate_daily_report_pdf
-        generate_daily_report_pdf(pdf_path)
+        generate_daily_report_pdf(pdf_path, target_date)
     except Exception as e:
         print(f"Error generating daily PDF report: {e}")
         return
@@ -194,7 +194,8 @@ def daily_report_scheduler_loop():
                 current_date = now.date()
                 if last_sent_date != current_date:
                     print(f"Time is {now.strftime('%H:%M')}. Generating and sending daily PDF report...")
-                    send_daily_report_to_all_chats()
+                    yesterday = current_date - datetime.timedelta(days=1)
+                    send_daily_report_to_all_chats(target_date=yesterday)
                     last_sent_date = current_date
         except Exception as e:
             print(f"Error in daily report scheduler: {e}")
