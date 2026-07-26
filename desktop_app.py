@@ -16,16 +16,11 @@ def start_server():
 
 if __name__ == "__main__":
     # دعم التجميد لـ PyInstaller لمنع التكرار اللانهائي للعمليات
-    multiprocessing.freeze_support()
-    
-    # تشغيل السيرفر في عملية منفصلة بالخلفية
-    p = multiprocessing.Process(target=start_server)
-    p.daemon = True
-    p.start()
-    
-    # انتظار بدء تشغيل السيرفر
-    time.sleep(2)
-    
+    # 1. Start backend server in a separate process
+    server_process = multiprocessing.Process(target=start_server, daemon=True)
+    server_process.start()
+    time.sleep(2.5)
+
     url = "http://127.0.0.1:8000"
     
     # فتح المتصفح بوضع نافذة التطبيق المستقلة
@@ -33,8 +28,10 @@ if __name__ == "__main__":
     try:
         if sys.platform == "darwin":  # macOS
             import subprocess
-            subprocess.Popen(f"open -a 'Google Chrome' --args --app={url}", shell=True)
-            opened = True
+            chrome_app_exists = os.path.exists("/Applications/Google Chrome.app") or os.path.exists(os.path.expanduser("~/Applications/Google Chrome.app"))
+            if chrome_app_exists:
+                subprocess.Popen(f"open -a 'Google Chrome' --args --app={url}", shell=True)
+                opened = True
         elif sys.platform == "win32":  # Windows
             import subprocess
             chrome_paths = [

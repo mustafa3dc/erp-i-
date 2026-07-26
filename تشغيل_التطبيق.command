@@ -13,3 +13,5 @@ fi
 
 # تشغيل التطبيق محلياً
 python3 run_desktop.py
+
+

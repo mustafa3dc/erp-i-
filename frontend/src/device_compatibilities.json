@@ -1,0 +1,977 @@
+{
+  "compatibilities": [
+    {
+      "brand": "Apple",
+      "model": "iPhone 5S",
+      "compatible_models": [
+        "iPhone SE 2016",
+        "iPhone 5C"
+      ],
+      "part_type": "Screen & Camera",
+      "notes": "الشاشات متوافقة تماماً مع الجيل الأول من SE"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone SE 2016",
+      "compatible_models": [
+        "iPhone 5S"
+      ],
+      "part_type": "Screen & Camera",
+      "notes": "توافق شاشات بالكامل"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 6",
+      "compatible_models": [
+        "iPhone 6 Plus"
+      ],
+      "part_type": "None",
+      "notes": "لا تتوافق الشاشة ولكن بعض الأجزاء الصغيرة مثل السماعة متوافقة"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 6s",
+      "compatible_models": [
+        "iPhone 6s Plus"
+      ],
+      "part_type": "None",
+      "notes": "لا تتوافق الشاشات أو البطاريات"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 7",
+      "compatible_models": [
+        "iPhone 8",
+        "iPhone SE 2020"
+      ],
+      "part_type": "Screen Glass & Home Button",
+      "notes": "تتوافق طبقة الحماية الخارجية والباكلايت، ولكن الفليكس يختلف إلكترونياً"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 8",
+      "compatible_models": [
+        "iPhone 7",
+        "iPhone SE 2020",
+        "iPhone SE 2022"
+      ],
+      "part_type": "Battery & Glass",
+      "notes": "البطارية متوافقة تماماً مع iPhone SE 2020"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone SE 2020",
+      "compatible_models": [
+        "iPhone 8",
+        "iPhone SE 2022"
+      ],
+      "part_type": "Battery & Back Glass",
+      "notes": "البطارية متطابقة تماماً مع ايفون 8"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone SE 2022",
+      "compatible_models": [
+        "iPhone 8",
+        "iPhone SE 2020"
+      ],
+      "part_type": "Screen Glass",
+      "notes": "توافق مقاس الشاشة والزجاج الخارجي"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone X",
+      "compatible_models": [
+        "iPhone XS"
+      ],
+      "part_type": "Screen Glass & Speaker",
+      "notes": "الزجاج الخارجي متطابق، الشاشة الكاملة تختلف الموصلات"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone XS",
+      "compatible_models": [
+        "iPhone X"
+      ],
+      "part_type": "Screen Glass",
+      "notes": "توافق الزجاج الخارجي"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone XS Max",
+      "compatible_models": [
+        "iPhone 11 Pro Max"
+      ],
+      "part_type": "Screen Glass",
+      "notes": "توافق قياس الزجاج الخارجي"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone XR",
+      "compatible_models": [
+        "iPhone 11"
+      ],
+      "part_type": "Screen Glass & Backlight",
+      "notes": "نفس قياس الشاشة والزجاج الخارجي، فليكس الشاشة يختلف"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 11",
+      "compatible_models": [
+        "iPhone XR"
+      ],
+      "part_type": "Screen Glass & Backlight",
+      "notes": "يتشابه الزجاج والباكلايت"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 12",
+      "compatible_models": [
+        "iPhone 12 Pro"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة ايفون 12 وايفون 12 برو متطابقة 100% ويمكن استبدالهما تبادلياً"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 12 Pro",
+      "compatible_models": [
+        "iPhone 12"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "الشاشة متوافقة تماماً مع ايفون 12 العادي"
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 13",
+      "compatible_models": [
+        "iPhone 13 mini",
+        "iPhone 14"
+      ],
+      "part_type": "None",
+      "notes": "شاشة ايفون 14 تشبه ايفون 13 ولكنها تختلف الكترونياً بفروقات بسيطة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A12",
+      "compatible_models": [
+        "Galaxy A02s",
+        "Galaxy M12",
+        "Galaxy F12",
+        "Galaxy A12 Nacho",
+        "A125",
+        "A127",
+        "A025",
+        "M127"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "الشاشة والبطارية (EB-BA217ABY) متوافقة تماماً"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A02s",
+      "compatible_models": [
+        "Galaxy A12",
+        "Galaxy M12",
+        "Galaxy F12",
+        "A125",
+        "A025",
+        "M127"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy M12",
+      "compatible_models": [
+        "Galaxy A12",
+        "Galaxy A02s",
+        "Galaxy F12",
+        "M127"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل للشاشة والبطارية"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A20",
+      "compatible_models": [
+        "Galaxy A30",
+        "Galaxy A30s",
+        "Galaxy A50",
+        "Galaxy A50s",
+        "Galaxy M30",
+        "A205",
+        "A305",
+        "A307",
+        "A505"
+      ],
+      "part_type": "Screen",
+      "notes": "الشاشات من نوع AMOLED تتوافق بالكامل في الموصل والأبعاد"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A30",
+      "compatible_models": [
+        "Galaxy A20",
+        "Galaxy A30s",
+        "Galaxy A50",
+        "Galaxy A50s",
+        "Galaxy M30"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A30s",
+      "compatible_models": [
+        "Galaxy A20",
+        "Galaxy A30",
+        "Galaxy A50",
+        "Galaxy A50s",
+        "Galaxy M30"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A50",
+      "compatible_models": [
+        "Galaxy A20",
+        "Galaxy A30",
+        "Galaxy A30s",
+        "Galaxy A50s",
+        "Galaxy M30"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "البطارية EB-BA505ABY متطابقة مع A30 و A20 و A30s"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A50s",
+      "compatible_models": [
+        "Galaxy A50",
+        "Galaxy A30s",
+        "Galaxy A30",
+        "Galaxy A20"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل للشاشة والبطارية"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A10",
+      "compatible_models": [
+        "Galaxy M10",
+        "A105",
+        "M105"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشات بالكامل"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy M10",
+      "compatible_models": [
+        "Galaxy A10",
+        "A105"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشة متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A10s",
+      "compatible_models": [
+        "Galaxy A20s",
+        "Galaxy A21s",
+        "Galaxy M01s",
+        "A107"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة في بعض إصدارات الكابل الداخلي"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A20s",
+      "compatible_models": [
+        "Galaxy A10s",
+        "Galaxy A21s",
+        "A207"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A21s",
+      "compatible_models": [
+        "Galaxy A12",
+        "Galaxy M12",
+        "Galaxy A10s",
+        "Galaxy A20s",
+        "A217"
+      ],
+      "part_type": "Battery & Screen",
+      "notes": "البطارية EB-BA217ABY متطابقة مع A12 و M12"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A70",
+      "compatible_models": [
+        "Galaxy A70s",
+        "A705",
+        "A707"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية (EB-BA705ABY) متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A70s",
+      "compatible_models": [
+        "Galaxy A70"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A51",
+      "compatible_models": [
+        "Galaxy A51 5G",
+        "A515"
+      ],
+      "part_type": "Battery & Screen Glass",
+      "notes": "البطارية EB-BA515ABY متوافقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A71",
+      "compatible_models": [
+        "Galaxy A71 5G",
+        "A715"
+      ],
+      "part_type": "Battery",
+      "notes": "البطارية EB-BA715ABY متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A31",
+      "compatible_models": [
+        "Galaxy A32",
+        "Galaxy A41",
+        "A315",
+        "A325"
+      ],
+      "part_type": "Battery",
+      "notes": "توافق بطارية EB-BA315ABY بشكل تبادلي"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A32",
+      "compatible_models": [
+        "Galaxy A31",
+        "Galaxy A41"
+      ],
+      "part_type": "Battery",
+      "notes": "البطارية متوافقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A01",
+      "compatible_models": [
+        "Galaxy A01 Core",
+        "Galaxy M01"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة مع بعض فئات M"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A02",
+      "compatible_models": [
+        "Galaxy M02",
+        "A022",
+        "M022"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متطابقة بالكامل"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A03",
+      "compatible_models": [
+        "Galaxy A03s",
+        "Galaxy A03 Core",
+        "A035",
+        "A037"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متقاربة وتركب في بعض التعديلات"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A04",
+      "compatible_models": [
+        "Galaxy A04e",
+        "Galaxy A04s",
+        "A045",
+        "A042"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق شاشة وبطارية بين السلسلة الاقتصادية A04"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A04s",
+      "compatible_models": [
+        "Galaxy A04",
+        "Galaxy A04e"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متوافقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A13 4G",
+      "compatible_models": [
+        "Galaxy A13 5G",
+        "Galaxy A14 4G",
+        "Galaxy A23 4G",
+        "A135",
+        "A145",
+        "A235"
+      ],
+      "part_type": "Battery",
+      "notes": "البطارية متطابقة تماماً بين هذه الفئات بقوة 5000mAh"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A14 4G",
+      "compatible_models": [
+        "Galaxy A13 4G",
+        "Galaxy A14 5G",
+        "Galaxy A15 4G"
+      ],
+      "part_type": "Battery",
+      "notes": "توافق بطارية"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A23 4G",
+      "compatible_models": [
+        "Galaxy A23 5G",
+        "Galaxy A13 4G"
+      ],
+      "part_type": "Battery",
+      "notes": "البطارية متطابقة"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A52",
+      "compatible_models": [
+        "Galaxy A52 5G",
+        "Galaxy A52s 5G",
+        "Galaxy A53 5G",
+        "A525",
+        "A526",
+        "A528"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "الشاشة متوافقة 100% بين A52 4G و A52 5G و A52s"
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy A52s 5G",
+      "compatible_models": [
+        "Galaxy A52",
+        "Galaxy A52 5G"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشة كامل"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi 9",
+      "compatible_models": [
+        "Redmi 9 Prime",
+        "Poco M2"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشات وبطاريات متطابقة 100%"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi 9A",
+      "compatible_models": [
+        "Redmi 9C",
+        "Redmi 10A",
+        "Poco C3",
+        "Poco C31",
+        "Redmi 9AT"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق شاشة وبطارية بالكامل"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi 9C",
+      "compatible_models": [
+        "Redmi 9A",
+        "Redmi 10A",
+        "Poco C3",
+        "Poco C31"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشات متوافقة بالكامل"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi 10A",
+      "compatible_models": [
+        "Redmi 9A",
+        "Redmi 9C",
+        "Poco C3"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متوافقة"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 8",
+      "compatible_models": [
+        "Redmi Note 8T"
+      ],
+      "part_type": "Screen Glass & Battery",
+      "notes": "شاشة نوت 8 تي أطول قليلاً ولكن البورد والبطارية متوافقة"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 8 Pro",
+      "compatible_models": [
+        "Poco X2"
+      ],
+      "part_type": "None",
+      "notes": "البطارية متقاربة ولكن لا يوجد توافق شاشات"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 9",
+      "compatible_models": [
+        "Redmi 10X 4G"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة بالكامل"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 9 Pro",
+      "compatible_models": [
+        "Redmi Note 9S",
+        "Redmi Note 9 Pro Max",
+        "Poco M2 Pro"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشات وبطاريات متطابقة تماماً"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 9S",
+      "compatible_models": [
+        "Redmi Note 9 Pro",
+        "Poco M2 Pro"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متطابقة"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 10 4G",
+      "compatible_models": [
+        "Redmi Note 10S"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة OLED وبطارية متطابقة تماماً 100%"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 10S",
+      "compatible_models": [
+        "Redmi Note 10 4G"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل شاشة وبطارية"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 10 Pro",
+      "compatible_models": [
+        "Redmi Note 10 Pro Max"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل للشاشة والبطارية"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 11",
+      "compatible_models": [
+        "Redmi Note 11S",
+        "Poco M4 Pro 4G"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشة OLED متوافقة تماماً"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 11S",
+      "compatible_models": [
+        "Redmi Note 11",
+        "Poco M4 Pro 4G"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشات كامل"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Redmi Note 12 4G",
+      "compatible_models": [
+        "Redmi Note 12S",
+        "Poco M5s"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Poco X3 NFC",
+      "compatible_models": [
+        "Poco X3 Pro",
+        "Poco X3"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشات متوافقة تماماً، البطارية تركب ولكن بسعة مختلفة قليلاً"
+    },
+    {
+      "brand": "Xiaomi",
+      "model": "Poco X3 Pro",
+      "compatible_models": [
+        "Poco X3 NFC"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشة متطابقة 100%"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Hot 10 Lite",
+      "compatible_models": [
+        "Tecno Spark 6 Go",
+        "Itel Vision 1",
+        "Infinix Smart 5",
+        "X657",
+        "KE5"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق شاشة وبطارية كامل عابر للماركات التابعة للشركة الأم"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Spark 6 Go",
+      "compatible_models": [
+        "Infinix Hot 10 Lite",
+        "Itel Vision 1",
+        "Infinix Smart 5",
+        "KE5"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشة متطابقة"
+    },
+    {
+      "brand": "Itel",
+      "model": "Vision 1",
+      "compatible_models": [
+        "Infinix Hot 10 Lite",
+        "Tecno Spark 6 Go",
+        "Infinix Smart 5"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Smart 5",
+      "compatible_models": [
+        "Infinix Hot 10 Lite",
+        "Tecno Spark 6 Go",
+        "Tecno Spark 5 Air",
+        "Itel Vision 1 Pro"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "تتوافق الشاشات والبطاريات بالكامل"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Hot 10 Play",
+      "compatible_models": [
+        "Infinix Hot 11 Play",
+        "Tecno Spark 7",
+        "Tecno Spark 7t",
+        "X688",
+        "X6816"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية ضخمة 6000mAh متطابقة تماماً"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Hot 11 Play",
+      "compatible_models": [
+        "Infinix Hot 10 Play",
+        "Tecno Spark 7",
+        "Tecno Spark 7t"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متطابقة"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Spark 7",
+      "compatible_models": [
+        "Infinix Hot 10 Play",
+        "Infinix Hot 11 Play",
+        "Tecno Spark 7t"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق شاشة كامل"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Hot 30i",
+      "compatible_models": [
+        "Tecno Spark 10",
+        "Tecno Spark 10c",
+        "X669",
+        "KI5"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متطابقة تماماً"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Spark 10",
+      "compatible_models": [
+        "Infinix Hot 30i",
+        "Tecno Spark 10c"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متطابقة"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Spark 10c",
+      "compatible_models": [
+        "Infinix Hot 30i",
+        "Tecno Spark 10"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متطابقة"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Hot 40",
+      "compatible_models": [
+        "Tecno Spark 20 Pro",
+        "Tecno Spark 20",
+        "Infinix Hot 40 Pro"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشات الجيل الجديد"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Spark 20 Pro",
+      "compatible_models": [
+        "Infinix Hot 40",
+        "Tecno Spark 20",
+        "Infinix Hot 40 Pro"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متطابقة"
+    },
+    {
+      "brand": "Infinix",
+      "model": "Smart 6",
+      "compatible_models": [
+        "Infinix Smart 6 Plus",
+        "Tecno Pop 5 Pro",
+        "Tecno Pop 6 Pro"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشات الفئات الاقتصادية"
+    },
+    {
+      "brand": "Tecno",
+      "model": "Pop 6 Pro",
+      "compatible_models": [
+        "Infinix Smart 6",
+        "Tecno Pop 5 Pro"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشة"
+    },
+    {
+      "brand": "Realme",
+      "model": "C11",
+      "compatible_models": [
+        "Realme C12",
+        "Realme C15",
+        "Realme C25",
+        "Oppo A15",
+        "Oppo A15s",
+        "C11 2021"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة بالكامل وتناسب موديلات أوبو A15"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A15",
+      "compatible_models": [
+        "Realme C11",
+        "Realme C12",
+        "Realme C15",
+        "Realme C25",
+        "Oppo A15s"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة بالكامل"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A15s",
+      "compatible_models": [
+        "Oppo A15",
+        "Realme C11",
+        "Realme C12",
+        "Realme C15"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشة"
+    },
+    {
+      "brand": "Realme",
+      "model": "C21y",
+      "compatible_models": [
+        "Realme C25y",
+        "Realme C21",
+        "Realme C25s",
+        "Realme C25"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة"
+    },
+    {
+      "brand": "Realme",
+      "model": "C25y",
+      "compatible_models": [
+        "Realme C21y",
+        "Realme C21",
+        "Realme C25"
+      ],
+      "part_type": "Screen",
+      "notes": "توافق شاشة"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A53",
+      "compatible_models": [
+        "Oppo A32",
+        "Oppo A54 4G",
+        "Oppo A73",
+        "Realme 7i",
+        "A53s"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة وتدعم 90Hz في بعض الموديلات المشتركة"
+    },
+    {
+      "brand": "Realme",
+      "model": "7i",
+      "compatible_models": [
+        "Oppo A53",
+        "Oppo A32"
+      ],
+      "part_type": "Screen",
+      "notes": "شاشات متوافقة بالكامل"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A5s",
+      "compatible_models": [
+        "Oppo A7",
+        "Oppo A3s",
+        "Realme C2",
+        "Oppo A12"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق الشاشات والبطاريات بالكامل بين هذه السلسلة القديمة والشهيرة"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A3s",
+      "compatible_models": [
+        "Oppo A5s",
+        "Oppo A7",
+        "Realme C2",
+        "Oppo A12"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشة وبطارية متوافقة"
+    },
+    {
+      "brand": "Realme",
+      "model": "C2",
+      "compatible_models": [
+        "Oppo A3s",
+        "Oppo A5s",
+        "Oppo A12"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل للشاشة والبطارية"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A12",
+      "compatible_models": [
+        "Oppo A3s",
+        "Oppo A5s",
+        "Realme C2",
+        "Oppo A7"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق شاشة وبطارية"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A9 2020",
+      "compatible_models": [
+        "Oppo A5 2020",
+        "Oppo A11 2020"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "شاشات وبطاريات متطابقة تماماً"
+    },
+    {
+      "brand": "Oppo",
+      "model": "A5 2020",
+      "compatible_models": [
+        "Oppo A9 2020"
+      ],
+      "part_type": "Screen & Battery",
+      "notes": "توافق كامل شاشة وبطارية"
+    }
+  ]
+}

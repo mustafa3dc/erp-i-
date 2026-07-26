@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+
+* {
+  font-family: "Cairo", "Outfit", system-ui, -apple-system, sans-serif !important;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  direction: rtl;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Premium Dark Theme Palette */
+body.dark {
+  background: #030712;
+  color: #f9fafb;
+}
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Futuristic Neon Glassmorphism Utility Classes */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glow-indigo {
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+/* Hide spin buttons for number inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Custom Sleek Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.25);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* CLEAN INVOICE PRINT STYLES */
+.inv, .mnt {
+    font-family: 'Cairo', 'Outfit', sans-serif;
+    background: #FAF8F5;
+    color: #000000;
+    padding: 50px 56px;
+    max-width: 800px;
+    margin: 0 auto;
+    direction: rtl;
+}
+
+.inv-head, .mnt-head { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    margin-bottom: 24px; 
+    border-bottom: 2.5px solid #000000; 
+    padding-bottom: 24px; 
+}
+.inv-head-title, .mnt-head-title { 
+    font-size: 44px; 
+    font-weight: 900; 
+    color: #000000; 
+    letter-spacing: -2px; 
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+.inv-head-sub, .mnt-head-sub { 
+    font-size: 11px; 
+    color: #555555; 
+    margin-top: 4px; 
+}
+.inv-head-logo, .mnt-head-logo { 
+    font-size: 28px; 
+    font-weight: 900; 
+    color: #000000; 
+    background: transparent; 
+    padding: 0; 
+    border-radius: 0; 
+    border: none; 
+    letter-spacing: -1.5px;
+}
+
+.inv-company, .mnt-company { 
+    margin-bottom: 24px; 
+    font-size: 13px; 
+    color: #222222; 
+    line-height: 1.6; 
+    text-align: right;
+}
+.inv-company-name, .mnt-company-name { 
+    font-weight: 900; 
+    font-size: 16px; 
+    color: #000000; 
+    display: block; 
+    margin-bottom: 4px; 
+}
+
+.inv-info, .mnt-info { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 24px; 
+    border-top: 2px solid #000000; 
+    border-bottom: 2px solid #000000; 
+    padding: 20px 0; 
+    margin-bottom: 28px; 
+    text-align: right;
+}
+.mnt-info {
+    grid-template-columns: 1fr 1fr;
+}
+.inv-info-block, .mnt-info-box {
+    font-size: 12px;
+}
+.inv-info-block:last-child { text-align: left; }
+.inv-info-block:first-child { text-align: right; }
+.inv-info-label, .mnt-info-box-title { 
+    font-size: 10px; 
+    font-weight: 900; 
+    color: #000000; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 8px; 
+    display: block; 
+}
+.inv-info-val, .mnt-info-val { 
+    font-size: 12px; 
+    color: #000000; 
+    font-weight: 700; 
+}
+.inv-info-row, .mnt-info-row { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 11px; 
+    margin-bottom: 4px; 
+    color: #333333;
+}
+.inv-info-row-key, .mnt-info-key { font-weight: 800; color: #555555; }
+.inv-info-row-val, .mnt-info-val { color: #000000; font-weight: 700; }
+
+.inv-table, .mnt-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 12px; 
+    margin-bottom: 28px; 
+}
+.inv-table thead tr, .mnt-table thead tr { 
+    border-bottom: 2px solid #000000; 
+}
+.inv-table thead th, .mnt-table thead th { 
+    padding: 12px 8px; 
+    font-size: 11px; 
+    font-weight: 900; 
+    color: #000000; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    text-align: right; 
+}
+.mnt-table thead th { text-align: right; }
+.inv-table thead th.th-desc { text-align: right; }
+.inv-table thead th.th-amt  { text-align: left; }
+.mnt-table thead th.th-r { text-align: left; width: 120px; }
+
+.inv-table tbody tr, .mnt-table tbody tr { 
+    border-bottom: 1px solid #dcdcdc; 
+}
+.inv-table tbody td, .mnt-table tbody td { 
+    padding: 14px 8px; 
+    vertical-align: top; 
+}
+.inv-table tbody td.td-desc { font-weight: 700; color: #000000; }
+.inv-table tbody td.td-amt  { text-align: left; font-weight: 800; color: #000000; }
+
+.inv-totals, .mnt-totals { 
+    width: 280px; 
+    margin-left: 0; 
+    margin-right: auto; 
+    margin-bottom: 36px; 
+}
+.inv-totals-row, .mnt-totals-row { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 6px 0; 
+    font-size: 12px; 
+    color: #333333; 
+}
+.inv-totals-row.grand, .mnt-totals-row.grand { 
+    border-top: 2px solid #000000; 
+    border-bottom: 2.5px solid #000000; 
+    padding: 10px 0; 
+    font-size: 16px; 
+    font-weight: 900; 
+    color: #000000; 
+}
+
+.inv-terms, .mnt-terms { 
+    border-top: 1px solid #dcdcdc; 
+    padding-top: 20px; 
+    margin-top: 40px; 
+}
+.inv-terms-title, .mnt-terms-title { 
+    font-size: 10px; 
+    font-weight: 900; 
+    color: #000000; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 8px; 
+}
+.inv-terms-list, .mnt-terms-list { 
+    font-size: 11px; 
+    color: #555555; 
+    line-height: 1.6; 
+    padding-right: 16px; 
+    margin: 0; 
+}

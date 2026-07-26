@@ -129,6 +129,7 @@ class MaintenanceJob(Base):
     __tablename__ = "maintenance_jobs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(String, nullable=False, default="default", index=True)
     customer_name = Column(String, nullable=False)
     customer_phone = Column(String, nullable=True)
     device_model = Column(String, nullable=False)
@@ -161,5 +162,71 @@ class SystemSetting(Base):
 
     key = Column(String, primary_key=True)
     value = Column(Text, nullable=True)
+
+
+class Customer(Base):
+    __tablename__ = "customers"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(String, nullable=False, default="default", index=True)
+    name = Column(String, nullable=False, index=True)
+    phone = Column(String, nullable=True, index=True)
+    notes = Column(Text, nullable=True)
+    initial_debt = Column(Numeric(12, 2), nullable=False, default=0.00)
+    installment_downpayment = Column(Numeric(12, 2), nullable=False, default=0.00)
+    installment_monthly = Column(Numeric(12, 2), nullable=False, default=0.00)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class CustomerPayment(Base):
+    __tablename__ = "customer_payments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(String, nullable=False, default="default", index=True)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
+    payment_date = Column(DateTime(timezone=True), server_default=func.now())
+    notes = Column(Text, nullable=True)
+
+    customer = relationship("Customer")
+
+
+class ShopSettings(Base):
+    __tablename__ = "shop_settings"
+
+    id = Column(Integer, primary_key=True, default=1)
+    tenant_id = Column(String, nullable=False, default="default", index=True)
+    shop_name = Column(String, nullable=False, default="متجر الموبايل")
+    currency = Column(String, nullable=False, default="د.ع")
+    phone = Column(String, nullable=True, default="")
+    email = Column(String, nullable=True, default="")
+    address = Column(String, nullable=True, default="")
+    footer_note = Column(String, nullable=True, default="شكراً لتعاملكم معنا 🙏")
+    system_password = Column(String, nullable=False, default="123456")
+    telegram_token = Column(String, nullable=True, default="")
+    telegram_chat_id = Column(String, nullable=True, default="")
+    whatsapp_phone = Column(String, nullable=True, default="")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String, nullable=False, unique=True, index=True)
+    hashed_password = Column(String, nullable=False)
+    role = Column(String, nullable=False, default="user") # 'admin' or 'user'
+    
+    # SaaS Multi-Tenancy & Subscription Management
+    tenant_id = Column(String, nullable=False, default="default", index=True) # Shop identifier
+    shop_name = Column(String, nullable=True, default="متجر الموبايل")
+    is_active = Column(Integer, nullable=False, default=1) # 1 = Active, 0 = Suspended
+    is_super_admin = Column(Integer, nullable=False, default=0) # 1 = App Owner, 0 = Customer
+    subscription_start = Column(DateTime(timezone=True), nullable=True)
+    subscription_end = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 
 

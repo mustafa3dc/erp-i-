@@ -151,11 +151,14 @@ class SaleItemResponse(SaleItemBase):
 
 class SaleBase(BaseModel):
     customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
     payment_method: PaymentMethod = PaymentMethod.CASH
     total_amount: Decimal = Field(default=Decimal("0.00"), ge=0)
 
 class SaleCreate(SaleBase):
     items: List[SaleItemCreate] = Field(..., min_length=1)
+    installment_downpayment: Optional[Decimal] = Decimal("0.00")
+    installment_monthly: Optional[Decimal] = Decimal("0.00")
 
 class SaleResponse(SaleBase):
     id: UUID
@@ -193,3 +196,99 @@ class MaintenanceJobResponse(MaintenanceJobBase):
     parts: List[MaintenancePartResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Customer Schemas
+class CustomerBase(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    notes: Optional[str] = None
+    initial_debt: Optional[Decimal] = Decimal("0.00")
+    installment_downpayment: Optional[Decimal] = Decimal("0.00")
+    installment_monthly: Optional[Decimal] = Decimal("0.00")
+
+class CustomerCreate(CustomerBase):
+    pass
+
+class CustomerUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    notes: Optional[str] = None
+    initial_debt: Optional[Decimal] = None
+    installment_downpayment: Optional[Decimal] = None
+    installment_monthly: Optional[Decimal] = None
+
+class CustomerResponse(CustomerBase):
+    id: UUID
+    created_at: DateTimeUTC
+    updated_at: DateTimeUTC
+    total_sales: Optional[int] = 0
+    total_maintenance: Optional[int] = 0
+    current_debt: Optional[Decimal] = Decimal("0.00")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CustomerPaymentBase(BaseModel):
+    amount: Decimal = Field(..., ge=0)
+    notes: Optional[str] = None
+
+class CustomerPaymentCreate(CustomerPaymentBase):
+    payment_date: Optional[datetime] = None
+
+class CustomerPaymentResponse(CustomerPaymentBase):
+    id: UUID
+    customer_id: UUID
+    payment_date: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ShopSettings Schemas
+class ShopSettingsBase(BaseModel):
+    shop_name: str
+    currency: str
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+    address: Optional[str] = ""
+    footer_note: Optional[str] = ""
+    system_password: str
+
+class ShopSettingsResponse(ShopSettingsBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: Optional[str] = "user"
+    shop_name: Optional[str] = "متجر الموبايل"
+    tenant_id: Optional[str] = "default"
+    is_active: Optional[int] = 1
+    is_super_admin: Optional[int] = 0
+    subscription_end: Optional[datetime] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    username: str
+    role: str
+    tenant_id: str
+    shop_name: Optional[str] = "متجر الموبايل"
+    is_active: int
+    is_super_admin: int
+    subscription_start: Optional[datetime] = None
+    subscription_end: Optional[datetime] = None
+    created_at: DateTimeUTC
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+

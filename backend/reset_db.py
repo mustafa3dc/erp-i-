@@ -33,10 +33,17 @@ def reset_database():
             ("5000", "Cost of Goods Sold (تكلفة البضاعة المباعة)", models.AccountType.EXPENSE),
         ]
         for code, name, acc_type in default_accounts:
-            acc = models.Account(code=code, name=name, type=acc_type)
-            db.add(acc)
+            existing = db.query(models.Account).filter(models.Account.code == code).first()
+            if not existing:
+                acc = models.Account(code=code, name=name, type=acc_type)
+                db.add(acc)
         db.commit()
         print("Successfully seeded default accounts.")
+
+        # Seed standard recharge cards
+        from app.crud import seed_recharge_cards
+        seed_recharge_cards(db)
+        print("Successfully seeded standard recharge cards.")
     except Exception as e:
         db.rollback()
         print(f"Error seeding database: {e}")
