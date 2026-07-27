@@ -224,6 +224,8 @@ from fastapi import Request
 
 @app.middleware("http")
 async def tenant_middleware(request: Request, call_next):
+    if request.url.path.startswith("/assets") or request.url.path.startswith("/ping") or request.url.path == "/":
+        return await call_next(request)
     tenant_id = request.headers.get("X-Tenant-ID", "default")
     request.state.tenant_id = tenant_id
     response = await call_next(request)
