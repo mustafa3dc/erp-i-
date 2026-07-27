@@ -93,7 +93,7 @@ export default function CustomersPage() {
             setForm({ name: '', phone: '', notes: '', initial_debt: '0', installment_downpayment: '0', installment_monthly: '0' });
             fetchCustomers();
         } catch (e) {
-            alert('خطأ في إضافة الزبون');
+            alert(e.response?.data?.detail || 'خطأ في إضافة الزبون. يرجى التأكد من البيانات.');
         } finally {
             setSaving(false);
         }
