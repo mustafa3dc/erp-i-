@@ -232,9 +232,12 @@ app.add_middleware(
 )
 
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
-assets_dir = os.path.join(current_file_dir, "templates", "assets")
-os.makedirs(assets_dir, exist_ok=True)
-app.mount("/assets", StaticFiles(directory=assets_dir, html=False), name="assets")
+assets_dir1 = os.path.join(current_file_dir, "templates", "assets")
+assets_dir2 = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets"))
+
+target_assets = assets_dir1 if (os.path.exists(assets_dir1) and len(os.listdir(assets_dir1)) > 0) else assets_dir2
+os.makedirs(target_assets, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=target_assets, html=False), name="assets")
 
 from fastapi import Request
 
