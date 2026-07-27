@@ -240,14 +240,12 @@ app.add_middleware(
 from fastapi.staticfiles import StaticFiles
 
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
-dist_dir = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist"))
-assets_dir = os.path.join(dist_dir, "assets")
+templates_assets = os.path.join(current_file_dir, "templates", "assets")
+dist_assets = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets"))
 
-if not os.path.exists(assets_dir):
-    assets_dir = os.path.join(current_file_dir, "templates", "assets")
-
-if os.path.exists(assets_dir):
-    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+active_assets = templates_assets if os.path.exists(templates_assets) else dist_assets
+if os.path.exists(active_assets):
+    app.mount("/assets", StaticFiles(directory=active_assets), name="assets")
 
 @app.get("/ping")
 def ping():
