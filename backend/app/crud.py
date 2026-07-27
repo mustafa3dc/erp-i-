@@ -743,12 +743,12 @@ def create_customer_direct(db: Session, name: str, phone: str = None, notes: str
     return new_c
 
 
-def search_customers(db: Session, query: str):
-    """Search customers by name or phone number."""
+def search_customers(db: Session, query: str, tenant_id: str = "default"):
+    """Search customers by name or phone number within tenant."""
     pattern = f"%{query}%"
     return db.query(models.Customer).filter(
-        models.Customer.name.ilike(pattern) |
-        models.Customer.phone.ilike(pattern)
+        models.Customer.tenant_id == tenant_id,
+        (models.Customer.name.ilike(pattern) | models.Customer.phone.ilike(pattern))
     ).all()
 
 

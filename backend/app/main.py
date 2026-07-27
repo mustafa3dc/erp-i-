@@ -903,8 +903,9 @@ def get_customers(request: Request, skip: int = 0, limit: int = 200, db: Session
 
 
 @app.get("/customers/search/")
-def search_customers(q: str, db: Session = Depends(get_db)):
-    customers = crud.search_customers(db=db, query=q)
+def search_customers(q: str, request: Request, db: Session = Depends(get_db)):
+    tenant_id = getattr(request.state, "tenant_id", "default")
+    customers = crud.search_customers(db=db, query=q, tenant_id=tenant_id)
     return [{
         "id": str(c.id),
         "name": c.name,
