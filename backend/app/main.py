@@ -233,17 +233,14 @@ app.add_middleware(
 
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 
-from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-@app.get("/assets/{file_name}")
-def serve_static_asset(file_name: str):
-    p1 = os.path.join(current_file_dir, "templates", "assets", file_name)
-    p2 = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets", file_name))
-    target = p1 if os.path.exists(p1) else (p2 if os.path.exists(p2) else None)
-    if target and os.path.isfile(target):
-        media_type = "application/javascript" if file_name.endswith(".js") else ("text/css" if file_name.endswith(".css") else None)
-        return FileResponse(target, media_type=media_type)
-    raise HTTPException(status_code=404, detail="Asset not found")
+assets_dir1 = os.path.join(current_file_dir, "templates", "assets")
+assets_dir2 = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets"))
+assets_path = assets_dir1 if os.path.exists(assets_dir1) else assets_dir2
+os.makedirs(assets_path, exist_ok=True)
+
+app.mount("/assets", StaticFiles(directory=assets_path, html=False), name="assets")
 
 from fastapi import Request
 
