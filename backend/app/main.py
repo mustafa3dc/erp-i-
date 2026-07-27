@@ -156,6 +156,14 @@ async def lifespan(app: FastAPI):
             except Exception:
                 pass
             try:
+                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00"))
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00"))
+            except Exception:
+                pass
+            try:
                 conn.execute(text("ALTER TABLE customer_payments ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
             except Exception:
                 pass
