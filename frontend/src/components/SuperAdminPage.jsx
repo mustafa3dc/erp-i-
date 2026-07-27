@@ -172,7 +172,7 @@ export default function SuperAdminPage({ currentUser }) {
                             {tenants.map(t => (
                                 <tr key={t.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-all">
                                     <td className="p-4 font-bold">
-                                        <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">{t.shop_name || 'متجر الموبايل'}</div>
+                                        <div className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">{t.shop_name || 'MOBILE SIS'}</div>
                                         <div className="text-[11px] text-indigo-400 dir-ltr font-mono mt-0.5">@{t.username}</div>
                                     </td>
                                     <td className="p-4">

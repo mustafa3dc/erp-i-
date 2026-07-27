@@ -1328,7 +1328,7 @@ def list_users(db: Session = Depends(get_db)):
         "username": u.username, 
         "role": u.role, 
         "tenant_id": getattr(u, 'tenant_id', 'default'),
-        "shop_name": getattr(u, 'shop_name', 'متجر الموبايل'),
+        "shop_name": getattr(u, 'shop_name', None) or 'MOBILE SIS',
         "is_active": getattr(u, 'is_active', 1),
         "is_super_admin": getattr(u, 'is_super_admin', 0),
         "subscription_end": u.subscription_end.isoformat() if getattr(u, 'subscription_end', None) else None,
