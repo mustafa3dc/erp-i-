@@ -1268,16 +1268,24 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     
     # Guarantee master admin override
     if req_user == "admin" and req_pass == "admin":
-        if not db_user:
-            admin_schema = schemas.UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
-            db_user = crud.create_user(db, admin_schema)
-        else:
-            db_user.hashed_password = crud.hash_password("admin")
-            db_user.is_super_admin = 1
-            db_user.is_active = 1
-            db.commit()
-            db.refresh(db_user)
+        try:
+            if not db_user:
+                admin_schema = schemas.UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
+                db_user = crud.create_user(db, admin_schema)
+            else:
+                db_user.hashed_password = crud.hash_password("admin")
+                db_user.is_super_admin = 1
+                db_user.is_active = 1
+                db.commit()
+                db.refresh(db_user)
+        except Exception as ae:
+            print(f"Master admin auto sync error: {ae}")
+            db.rollback()
+            db_user = crud.get_user_by_username(db, "admin")
     elif not db_user or not crud.verify_password(db_user.hashed_password, req_pass):
+        raise HTTPException(status_code=400, detail="اسم المستخدم أو رمز المرور غير صحيح.")
+
+    if not db_user:
         raise HTTPException(status_code=400, detail="اسم المستخدم أو رمز المرور غير صحيح.")
         
     # Check if account is active
@@ -1286,12 +1294,17 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         
     # Check subscription expiration for non-superadmin users
     if getattr(db_user, 'is_super_admin', 0) == 0 and getattr(db_user, 'subscription_end', None):
-        now_utc = datetime.now(timezone.utc)
-        sub_end = db_user.subscription_end
-        if sub_end.tzinfo is None:
-            sub_end = sub_end.replace(tzinfo=timezone.utc)
-        if now_utc > sub_end:
-            raise HTTPException(status_code=403, detail="انتهت فترة اشتراكك في النظام! يرجى تجديد الاشتراك للمتابعة.")
+        try:
+            now_utc = datetime.now(timezone.utc)
+            sub_end = db_user.subscription_end
+            if sub_end and sub_end.tzinfo is None:
+                sub_end = sub_end.replace(tzinfo=timezone.utc)
+            if sub_end and now_utc > sub_end:
+                raise HTTPException(status_code=403, detail="انتهت فترة اشتراكك في النظام! يرجى تجديد الاشتراك للمتابعة.")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
 
     return {
         "status": "success",
@@ -1302,7 +1315,7 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
             "tenant_id": getattr(db_user, 'tenant_id', 'default'),
             "shop_name": getattr(db_user, 'shop_name', 'متجر الموبايل'),
             "is_super_admin": getattr(db_user, 'is_super_admin', 0),
-            "subscription_end": db_user.subscription_end.isoformat() if getattr(db_user, 'subscription_end', None) else None
+            "subscription_end": db_user.subscription_end.isoformat() if (getattr(db_user, 'subscription_end', None) and hasattr(db_user.subscription_end, 'isoformat')) else None
         }
     }
 
