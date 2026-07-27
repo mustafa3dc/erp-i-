@@ -235,13 +235,6 @@ async def lifespan(app: FastAPI):
                 pass
             try:
                 conn.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
-                print("Migration: Added created_at column to inventory_items")
-                # One-time reset for existing items (SQLite/PostgreSQL fallback)
-                try:
-                    conn.execute(text("UPDATE inventory_items SET created_at = '2026-06-01 00:00:00+00' WHERE created_at < NOW() - INTERVAL '5 minutes'"))
-                except Exception:
-                    conn.execute(text("UPDATE inventory_items SET created_at = '2026-06-01 00:00:00' WHERE created_at < datetime('now', '-5 minutes')"))
-                print("Migration: Reset existing inventory_items created_at to past date")
             except Exception:
                 pass
         start_bot_process()
