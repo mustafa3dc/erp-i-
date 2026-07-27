@@ -335,8 +335,7 @@ def create_sale(sale: schemas.SaleCreate, request: Request, db: Session = Depend
                 db=db,
                 customer_id=customer.id,
                 amount=float(sale.installment_downpayment),
-                notes=f"مقدمة القسط لفاتورة مبيعات رقم {str(created_sale.id)[:8]}",
-                tenant_id=tenant_id
+                notes=f"مقدمة القسط لفاتورة مبيعات رقم {str(created_sale.id)[:8]}"
             )
             db.commit()
         except Exception as e:
