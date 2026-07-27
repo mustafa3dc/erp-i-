@@ -160,20 +160,25 @@ async def lifespan(app: FastAPI):
             from .models import User
             from .crud import create_user
             from .schemas import UserCreate
-            user_count = db_session.query(User).count()
-            if user_count == 0:
+            admin_acc = db_session.query(User).filter(User.username == "admin").first()
+            if not admin_acc:
                 admin_user = UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
                 create_user(db_session, admin_user)
+                print("Admin user created")
             else:
-                all_users = db_session.query(User).all()
-                for u in all_users:
-                    if u.username == "admin":
-                        u.is_super_admin = 1
-                        if not u.tenant_id or u.tenant_id == "default":
-                            u.tenant_id = "tenant_admin_master"
-                    elif not u.tenant_id or u.tenant_id == "default":
-                        u.tenant_id = f"tenant_{u.username}_{str(uuid.uuid4())[:6]}"
+                from .crud import hash_password
+                admin_acc.hashed_password = hash_password("admin")
+                admin_acc.is_super_admin = 1
+                admin_acc.is_active = 1
+                if not admin_acc.tenant_id or admin_acc.tenant_id == "default":
+                    admin_acc.tenant_id = "tenant_admin_master"
                 db_session.commit()
+
+            all_users = db_session.query(User).all()
+            for u in all_users:
+                if u.username != "admin" and (not u.tenant_id or u.tenant_id == "default"):
+                    u.tenant_id = f"tenant_{u.username}_{str(uuid.uuid4())[:6]}"
+            db_session.commit()
         except Exception as ue:
             print(f"User check error: {ue}")
         finally:
