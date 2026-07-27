@@ -778,8 +778,10 @@ def get_customer_history(db: Session, customer_id: str):
     return customer, sales, maintenance
 
 
-def get_all_customers(db: Session, skip: int = 0, limit: int = 200):
-    return db.query(models.Customer).offset(skip).limit(limit).all()
+def get_all_customers(db: Session, skip: int = 0, limit: int = 200, tenant_id: str = "default"):
+    return db.query(models.Customer).filter(
+        models.Customer.tenant_id == tenant_id
+    ).order_by(models.Customer.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def update_customer(db: Session, customer_id: str, data: schemas.CustomerUpdate):

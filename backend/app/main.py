@@ -253,7 +253,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request
+
+@app.middleware("http")
+async def tenant_middleware(request: Request, call_next):
+    tenant_id = request.headers.get("X-Tenant-ID", "default")
+    request.state.tenant_id = tenant_id
+    response = await call_next(request)
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -912,9 +919,10 @@ def set_gdrive_account(request: SetGDriveAccountRequest):
 # ─────────────────────────────────────────────────────────
 
 @app.get("/customers/")
-def get_customers(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
+def get_customers(request: Request, skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
     try:
-        customers = db.query(models.Customer).offset(skip).limit(limit).all()
+        tenant_id = getattr(request.state, "tenant_id", "default")
+        customers = db.query(models.Customer).filter(models.Customer.tenant_id == tenant_id).order_by(models.Customer.created_at.desc()).offset(skip).limit(limit).all()
         result = []
         for c in customers:
             result.append({
@@ -987,8 +995,9 @@ def customer_history(customer_id: str, db: Session = Depends(get_db)):
 
 
 @app.post("/customers/", response_model=schemas.CustomerResponse, status_code=201)
-def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
+def create_customer(customer: schemas.CustomerCreate, request: Request, db: Session = Depends(get_db)):
     try:
+        tenant_id = getattr(request.state, "tenant_id", "default")
         c = crud.create_customer_direct(
             db=db,
             name=customer.name,
@@ -996,7 +1005,8 @@ def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_
             notes=customer.notes,
             initial_debt=float(customer.initial_debt or 0),
             installment_downpayment=float(customer.installment_downpayment or 0),
-            installment_monthly=float(customer.installment_monthly or 0)
+            installment_monthly=float(customer.installment_monthly or 0),
+            tenant_id=tenant_id
         )
         db.commit()
         db.refresh(c)
