@@ -1,57 +1,42 @@
-import uvicorn
-import multiprocessing
 import sys
 import os
+import subprocess
 import time
-import webbrowser
+import urllib.request
+import webview
 
-# إضافة مجلد الباكيند للمسارات لكي يجد دالة التشغيل
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(current_dir, "backend", "app"))
+def main():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    CLOUD_API_URL = "https://erp-i.onrender.com"
 
-from main import app
-
-def start_server():
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
-
-if __name__ == "__main__":
-    # دعم التجميد لـ PyInstaller لمنع التكرار اللانهائي للعمليات
-    # 1. Start backend server in a separate process
-    server_process = multiprocessing.Process(target=start_server, daemon=True)
-    server_process.start()
-    time.sleep(2.5)
-
-    url = "http://127.0.0.1:8000"
-    
-    # فتح المتصفح بوضع نافذة التطبيق المستقلة
-    opened = False
+    # Try native pywebview application window
     try:
-        if sys.platform == "darwin":  # macOS
-            import subprocess
-            chrome_app_exists = os.path.exists("/Applications/Google Chrome.app") or os.path.exists(os.path.expanduser("~/Applications/Google Chrome.app"))
-            if chrome_app_exists:
-                subprocess.Popen(f"open -a 'Google Chrome' --args --app={url}", shell=True)
-                opened = True
-        elif sys.platform == "win32":  # Windows
-            import subprocess
+        window = webview.create_window(
+            title="نظام إدارة المحلات والمبيعات - M-Mobile ERP",
+            url=CLOUD_API_URL,
+            width=1280,
+            height=800,
+            resizable=True,
+            min_size=(900, 600)
+        )
+        webview.start()
+    except Exception as e:
+        # Fallback to browser app mode
+        url = CLOUD_API_URL
+        if sys.platform == "win32":
             chrome_paths = [
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                os.path.expanduser(r"~\AppData\Local\Google\Chrome\Application\chrome.exe"),
+                r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
             ]
             for path in chrome_paths:
                 if os.path.exists(path):
                     subprocess.Popen([path, f"--app={url}"])
-                    opened = True
-                    break
-    except Exception:
-        pass
-        
-    if not opened:
+                    return
+        import webbrowser
         webbrowser.open(url)
-        
-    # إبقاء البرنامج الرئيسي يعمل
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        p.terminate()
+
+if __name__ == "__main__":
+    main()
