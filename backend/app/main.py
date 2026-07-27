@@ -241,8 +241,11 @@ from fastapi.staticfiles import StaticFiles
 
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 assets_dir = os.path.join(current_file_dir, "templates", "assets")
-if os.path.exists(assets_dir):
-    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+dist_assets = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets"))
+
+final_assets_path = assets_dir if os.path.exists(assets_dir) else dist_assets
+if os.path.exists(final_assets_path):
+    app.mount("/assets", StaticFiles(directory=final_assets_path, html=False), name="assets")
 
 @app.get("/ping")
 def ping():
