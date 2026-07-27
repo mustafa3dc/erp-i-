@@ -710,48 +710,37 @@ def update_product(db: Session, product_id: str, name: str, brand: str, type: st
 # Customer CRUD
 # ─────────────────────────────────────────────────────────
 
-def get_or_create_customer(db: Session, name: str, phone: str = None, tenant_id: str = "default") -> models.Customer:
-    """Find an existing customer by name or phone, or create a new one for the specified tenant."""
-    customer = None
+def create_customer_direct(db: Session, name: str, phone: str = None, notes: str = None, initial_debt: float = 0.0, installment_downpayment: float = 0.0, installment_monthly: float = 0.0, tenant_id: str = "default") -> models.Customer:
+    clean_name = name.strip() if name else "زبون"
+    clean_phone = phone.strip() if (phone and phone.strip()) else None
+    
+    # Check duplicate name in tenant
+    existing = db.query(models.Customer).filter(
+        models.Customer.tenant_id == tenant_id,
+        models.Customer.name.ilike(clean_name)
+    ).first()
+    
+    if existing:
+        if clean_phone and not existing.phone:
+            existing.phone = clean_phone
+        if notes:
+            existing.notes = notes
+        existing.initial_debt = initial_debt
+        existing.installment_downpayment = installment_downpayment
+        existing.installment_monthly = installment_monthly
+        return existing
 
-    # Search by phone first (most reliable) within tenant
-    if phone:
-        phone_clean = phone.strip()
-        customer = db.query(models.Customer).filter(
-            models.Customer.tenant_id == tenant_id,
-            models.Customer.phone == phone_clean
-        ).first()
-
-    # If not found by phone, search by name (case-insensitive) within tenant
-    if not customer and name:
-        name_clean = name.strip()
-        customer = db.query(models.Customer).filter(
-            models.Customer.tenant_id == tenant_id,
-            models.Customer.name.ilike(name_clean)
-        ).first()
-
-    # Create if still not found
-    if not customer:
-        customer = models.Customer(
-            tenant_id=tenant_id,
-            name=name.strip() if name else "زبون",
-            phone=phone.strip() if phone else None,
-        )
-        db.add(customer)
-        db.commit()
-        db.refresh(customer)
-
-    else:
-        # Update phone if it was empty and now we have one
-        updated = False
-        if phone and not customer.phone:
-            customer.phone = phone.strip()
-            updated = True
-        if updated:
-            db.commit()
-            db.refresh(customer)
-
-    return customer
+    new_c = models.Customer(
+        tenant_id=tenant_id,
+        name=clean_name,
+        phone=clean_phone,
+        notes=notes,
+        initial_debt=initial_debt,
+        installment_downpayment=installment_downpayment,
+        installment_monthly=installment_monthly
+    )
+    db.add(new_c)
+    return new_c
 
 
 def search_customers(db: Session, query: str):

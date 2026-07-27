@@ -984,15 +984,15 @@ def customer_history(customer_id: str, db: Session = Depends(get_db)):
 @app.post("/customers/", response_model=schemas.CustomerResponse, status_code=201)
 def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
     try:
-        c = crud.get_or_create_customer(db=db, name=customer.name, phone=customer.phone)
-        if customer.notes is not None:
-            c.notes = customer.notes
-        if customer.initial_debt is not None:
-            c.initial_debt = customer.initial_debt
-        if customer.installment_downpayment is not None:
-            c.installment_downpayment = customer.installment_downpayment
-        if customer.installment_monthly is not None:
-            c.installment_monthly = customer.installment_monthly
+        c = crud.create_customer_direct(
+            db=db,
+            name=customer.name,
+            phone=customer.phone,
+            notes=customer.notes,
+            initial_debt=float(customer.initial_debt or 0),
+            installment_downpayment=float(customer.installment_downpayment or 0),
+            installment_monthly=float(customer.installment_monthly or 0)
+        )
         db.commit()
         db.refresh(c)
         current_debt = crud.calculate_customer_debt(db, c)
@@ -1017,15 +1017,15 @@ def create_customers_bulk(customers_list: List[schemas.CustomerCreate], db: Sess
     for customer in customers_list:
         if not customer.name or not customer.name.strip():
             continue
-        c = crud.get_or_create_customer(db=db, name=customer.name, phone=customer.phone)
-        if customer.notes:
-            c.notes = customer.notes
-        if customer.initial_debt is not None:
-            c.initial_debt = customer.initial_debt
-        if customer.installment_downpayment is not None:
-            c.installment_downpayment = customer.installment_downpayment
-        if customer.installment_monthly is not None:
-            c.installment_monthly = customer.installment_monthly
+        crud.create_customer_direct(
+            db=db,
+            name=customer.name,
+            phone=customer.phone,
+            notes=customer.notes,
+            initial_debt=float(customer.initial_debt or 0),
+            installment_downpayment=float(customer.installment_downpayment or 0),
+            installment_monthly=float(customer.installment_monthly or 0)
+        )
         added_count += 1
     db.commit()
     return {"status": "success", "added_count": added_count}
