@@ -212,22 +212,22 @@ function App() {
         if (shopSettings.shopName) {
             document.title = shopSettings.shopName;
         } else {
-            document.title = 'متجر الموبايل';
+            document.title = 'MOBILE SIS — نظام إدارة المحلات والأنظمة';
         }
     }, [shopSettings.shopName]);
 
     if (!currentUser) {
-        const shopName = shopSettings.shopName || 'متجر الموبايل';
+        const shopName = shopSettings.shopName || 'MOBILE SIS';
         return (
             <div className="flex items-center justify-center h-screen bg-zinc-550 dark:bg-[#09090b] font-tajawal text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
                 <div className="w-full max-w-sm p-8 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl space-y-6 backdrop-blur-md">
                     {/* Head */}
                     <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-                            <Icon name="lock" className="w-7 h-7 text-indigo-600 animate-pulse" />
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-indigo-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+                            <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">MS</span>
                         </div>
-                        <h1 className="text-xl font-extrabold">{shopName}</h1>
-                        <p className="text-xs text-zinc-550 dark:text-zinc-400 font-bold">يرجى تسجيل الدخول للمتابعة</p>
+                        <h1 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400">MOBILE SIS</h1>
+                        <p className="text-xs text-zinc-400 font-extrabold tracking-wide">نظام MOBILE SIS المتكامل لإدارة المبيعات والصيانة 📱⚡</p>
                     </div>
 
                     {/* Auth Tabs */}

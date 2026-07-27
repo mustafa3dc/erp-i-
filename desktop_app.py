@@ -12,7 +12,7 @@ def main():
     # Try native pywebview application window
     try:
         window = webview.create_window(
-            title="نظام إدارة المحلات والمبيعات - M-Mobile ERP",
+            title="MOBILE SIS — نظام إدارة المحلات والأنظمة",
             url=CLOUD_API_URL,
             width=1280,
             height=800,

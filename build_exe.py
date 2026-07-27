@@ -6,7 +6,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 PyInstaller.__main__.run([
     'desktop_app.py',
-    '--name=M-Mobile-ERP',
+    '--name=MOBILE-SIS',
     '--onefile',
     '--noconsole',
     '--clean'
