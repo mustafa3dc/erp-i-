@@ -231,6 +231,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+
 from fastapi.responses import FileResponse
 
 @app.get("/assets/{file_name}")
