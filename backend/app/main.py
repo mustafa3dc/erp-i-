@@ -253,9 +253,9 @@ def ping():
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    template_path = os.path.join(dist_dir, "index.html")
+    template_path = os.path.join(current_file_dir, "templates", "index.html")
     if not os.path.exists(template_path):
-        template_path = os.path.join(current_file_dir, "templates", "index.html")
+        template_path = os.path.join(dist_dir, "index.html")
     try:
         with open(template_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
