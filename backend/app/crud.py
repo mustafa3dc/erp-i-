@@ -883,13 +883,25 @@ def create_user(db: Session, user_data: schemas.UserCreate):
     if not tenant_code or tenant_code == "default":
         tenant_code = f"tenant_{str(uuid.uuid4())[:8]}"
     
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    trial_end = now + timedelta(days=7)
+
+    clean_phone = user_data.phone.strip() if (user_data.phone and user_data.phone.strip()) else None
+    clean_email = user_data.email.strip().lower() if (user_data.email and user_data.email.strip()) else None
+
     db_user = models.User(
         username=user_data.username.strip().lower(),
         hashed_password=hashed_pwd,
         role=user_data.role or "user",
         tenant_id=tenant_code,
         shop_name=getattr(user_data, 'shop_name', 'متجر الموبايل') or 'متجر الموبايل',
-        is_super_admin=getattr(user_data, 'is_super_admin', 0)
+        is_super_admin=getattr(user_data, 'is_super_admin', 0),
+        subscription_start=now,
+        subscription_end=trial_end,
+        is_active=1,
+        phone=clean_phone,
+        email=clean_email
     )
     db.add(db_user)
     db.commit()

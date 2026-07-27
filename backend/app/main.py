@@ -139,7 +139,8 @@ async def lifespan(app: FastAPI):
                 "ALTER TABLE shop_settings ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
                 "ALTER TABLE shop_settings ADD COLUMN telegram_token VARCHAR DEFAULT ''",
                 "ALTER TABLE shop_settings ADD COLUMN telegram_chat_id VARCHAR DEFAULT ''",
-                "ALTER TABLE shop_settings ADD COLUMN whatsapp_phone VARCHAR DEFAULT ''",
+                "ALTER TABLE users ADD COLUMN phone VARCHAR",
+                "ALTER TABLE users ADD COLUMN email VARCHAR",
                 "ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID",
                 "ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"
             ]
@@ -1156,6 +1157,18 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="اسم المستخدم مسجل بالفعل.")
+    
+    if user.phone and user.phone.strip():
+        clean_p = user.phone.strip()
+        existing_phone = db.query(models.User).filter(models.User.phone == clean_p).first()
+        if existing_phone:
+            raise HTTPException(status_code=400, detail="رقم الهاتف مستخدم بالفعل لمحل آخر، لا يمكن تكراره.")
+
+    if user.email and user.email.strip():
+        clean_e = user.email.strip().lower()
+        existing_email = db.query(models.User).filter(models.User.email == clean_e).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="البريد الإلكتروني مستخدم بالفعل لمحل آخر، لا يمكن تكراره.")
     
     # Enforce first user registered is always admin
     user_count = db.query(models.User).count()

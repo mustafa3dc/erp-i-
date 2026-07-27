@@ -263,6 +263,8 @@ class ShopSettingsResponse(ShopSettingsBase):
 class UserCreate(BaseModel):
     username: str
     password: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
     role: Optional[str] = "user"
     shop_name: Optional[str] = "متجر الموبايل"
     tenant_id: Optional[str] = "default"

@@ -94,11 +94,14 @@ function App() {
         }
     };
 
+    const [phoneInput, setPhoneInput] = useState('');
+    const [emailInput, setEmailInput] = useState('');
+
     const handleRegister = async (e) => {
         if (e) e.preventDefault();
         setLoginError('');
-        if (!usernameInput.trim() || !passwordInput || !confirmPasswordInput) {
-            setLoginError('يرجى ملء جميع الحقول.');
+        if (!usernameInput.trim() || !passwordInput || !confirmPasswordInput || !phoneInput.trim() || !emailInput.trim()) {
+            setLoginError('يرجى ملء جميع الحقول بما فيها رقم الهاتف والبريد الإلكتروني.');
             return;
         }
         if (passwordInput !== confirmPasswordInput) {
@@ -109,12 +112,16 @@ function App() {
             await axios.post('/auth/register/', {
                 username: usernameInput,
                 password: passwordInput,
+                phone: phoneInput,
+                email: emailInput,
                 role: roleInput
             });
-            alert('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+            alert('تم إنشاء الحساب التجريبي بنجاح لمدة 7 أيام! 🎉 يمكنك الآن تسجيل الدخول.');
             setAuthTab('login');
             setPasswordInput('');
             setConfirmPasswordInput('');
+            setPhoneInput('');
+            setEmailInput('');
             setLoginError('');
         } catch (err) {
             setLoginError(err.response?.data?.detail || 'حدث خطأ أثناء إنشاء الحساب.');
@@ -265,6 +272,28 @@ function App() {
                                     value={passwordInput} 
                                     onChange={e => setPasswordInput(e.target.value)} 
                                     placeholder="أدخل كلمة المرور"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm focus:outline-none focus:border-indigo-600 text-right"
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-550 dark:text-zinc-400 mb-1.5">رقم الهاتف (لمنع التكرار)</label>
+                                <input 
+                                    type="text" 
+                                    value={phoneInput} 
+                                    onChange={e => setPhoneInput(e.target.value)} 
+                                    placeholder="07700000000"
+                                    className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm focus:outline-none focus:border-indigo-600 text-right"
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-550 dark:text-zinc-400 mb-1.5">البريد الإلكتروني (لمنع التكرار)</label>
+                                <input 
+                                    type="email" 
+                                    value={emailInput} 
+                                    onChange={e => setEmailInput(e.target.value)} 
+                                    placeholder="example@domain.com"
                                     className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent text-sm focus:outline-none focus:border-indigo-600 text-right"
                                     required 
                                 />
