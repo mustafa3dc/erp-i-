@@ -119,75 +119,38 @@ def stop_whatsapp_process():
 async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Base metadata create_all error: {e}")
         
-        # SQLite migrations for new installment columns
+    try:
         from sqlalchemy import text
         with engine.begin() as conn:
-            try:
-                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE users ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE users ADD COLUMN shop_name VARCHAR DEFAULT 'متجر الموبايل'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE users ADD COLUMN is_super_admin INTEGER DEFAULT 0"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE maintenance_jobs ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE customers ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE customer_payments ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE shop_settings ADD COLUMN tenant_id VARCHAR DEFAULT 'default'"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE shop_settings ADD COLUMN telegram_token VARCHAR DEFAULT ''"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE shop_settings ADD COLUMN telegram_chat_id VARCHAR DEFAULT ''"))
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE shop_settings ADD COLUMN whatsapp_phone VARCHAR DEFAULT ''"))
-            except Exception:
-                pass
-                
-        if not os.environ.get("RENDER"):
-            perform_auto_backup()
-        
-        # Ensure all existing users have unique tenant_ids
+            cols = [
+                "ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00",
+                "ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00",
+                "ALTER TABLE users ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
+                "ALTER TABLE users ADD COLUMN shop_name VARCHAR DEFAULT 'متجر الموبايل'",
+                "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1",
+                "ALTER TABLE users ADD COLUMN is_super_admin INTEGER DEFAULT 0",
+                "ALTER TABLE maintenance_jobs ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
+                "ALTER TABLE customers ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
+                "ALTER TABLE customer_payments ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
+                "ALTER TABLE shop_settings ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
+                "ALTER TABLE shop_settings ADD COLUMN telegram_token VARCHAR DEFAULT ''",
+                "ALTER TABLE shop_settings ADD COLUMN telegram_chat_id VARCHAR DEFAULT ''",
+                "ALTER TABLE shop_settings ADD COLUMN whatsapp_phone VARCHAR DEFAULT ''",
+                "ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID",
+                "ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"
+            ]
+            for col_stmt in cols:
+                try:
+                    conn.execute(text(col_stmt))
+                except Exception:
+                    pass
+    except Exception as mig_e:
+        print(f"Migration error: {mig_e}")
+
+    try:
         from .database import SessionLocal
         db_session = SessionLocal()
         try:
@@ -199,7 +162,6 @@ async def lifespan(app: FastAPI):
             if user_count == 0:
                 admin_user = UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
                 create_user(db_session, admin_user)
-                print("Default admin user created successfully")
             else:
                 all_users = db_session.query(User).all()
                 for u in all_users:
@@ -211,42 +173,26 @@ async def lifespan(app: FastAPI):
                         u.tenant_id = f"tenant_{u.username}_{str(uuid.uuid4())[:6]}"
                 db_session.commit()
         except Exception as ue:
-            print(f"Error updating users tenant IDs: {ue}")
+            print(f"User check error: {ue}")
         finally:
             db_session.close()
+    except Exception as e:
+        print(f"User session error: {e}")
 
-        # Seed standard recharge cards
+    try:
+        from .database import SessionLocal
         db_session = SessionLocal()
         try:
             from .crud import seed_recharge_cards
             seed_recharge_cards(db_session)
-            print("Successfully seeded standard recharge cards on startup.")
         except Exception as se:
-            print(f"Error seeding standard recharge cards: {se}")
+            print(f"Seeding error: {se}")
         finally:
             db_session.close()
-
-
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            try:
-                conn.execute(text("ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID"))
-                print("Migration: Added used_product_id column to maintenance_jobs")
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
-            except Exception:
-                pass
-        if not os.environ.get("RENDER"):
-            start_bot_process()
-            start_whatsapp_process()
     except Exception as e:
-        print(f"Database startup failed: {e}.")
+        print(f"Seeding session error: {e}")
+
     yield
-    if not os.environ.get("RENDER"):
-        stop_bot_process()
-        stop_whatsapp_process()
 
 app = FastAPI(
     title="Double-Entry Accounting System API",
