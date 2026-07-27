@@ -877,11 +877,19 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username.strip().lower()).first()
 
 def create_user(db: Session, user_data: schemas.UserCreate):
+    import uuid
     hashed_pwd = hash_password(user_data.password)
+    tenant_code = getattr(user_data, 'tenant_id', None)
+    if not tenant_code or tenant_code == "default":
+        tenant_code = f"tenant_{str(uuid.uuid4())[:8]}"
+    
     db_user = models.User(
         username=user_data.username.strip().lower(),
         hashed_password=hashed_pwd,
-        role=user_data.role or "user"
+        role=user_data.role or "user",
+        tenant_id=tenant_code,
+        shop_name=getattr(user_data, 'shop_name', 'متجر الموبايل') or 'متجر الموبايل',
+        is_super_admin=getattr(user_data, 'is_super_admin', 0)
     )
     db.add(db_user)
     db.commit()

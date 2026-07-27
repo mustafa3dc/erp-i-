@@ -186,10 +186,11 @@ async def lifespan(app: FastAPI):
                 
         perform_auto_backup()
         
-        # Create default admin user if none exist or update is_super_admin
+        # Ensure all existing users have unique tenant_ids
         from .database import SessionLocal
         db_session = SessionLocal()
         try:
+            import uuid
             from .models import User
             from .crud import create_user
             from .schemas import UserCreate
@@ -197,14 +198,19 @@ async def lifespan(app: FastAPI):
             if user_count == 0:
                 admin_user = UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
                 create_user(db_session, admin_user)
-                print("Default admin user created successfully (username: admin, password: admin)")
+                print("Default admin user created successfully")
             else:
-                admin_account = db_session.query(User).filter(User.username == "admin").first()
-                if admin_account:
-                    admin_account.is_super_admin = 1
-                    db_session.commit()
+                all_users = db_session.query(User).all()
+                for u in all_users:
+                    if u.username == "admin":
+                        u.is_super_admin = 1
+                        if not u.tenant_id or u.tenant_id == "default":
+                            u.tenant_id = "tenant_admin_master"
+                    elif not u.tenant_id or u.tenant_id == "default":
+                        u.tenant_id = f"tenant_{u.username}_{str(uuid.uuid4())[:6]}"
+                db_session.commit()
         except Exception as ue:
-            print(f"Error updating admin user: {ue}")
+            print(f"Error updating users tenant IDs: {ue}")
         finally:
             db_session.close()
 
