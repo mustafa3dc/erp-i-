@@ -220,6 +220,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+assets_dir = os.path.join(current_file_dir, "templates", "assets")
+os.makedirs(assets_dir, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=assets_dir, html=False), name="assets")
+
 from fastapi import Request
 
 @app.middleware("http")
@@ -230,21 +243,6 @@ async def tenant_middleware(request: Request, call_next):
     request.state.tenant_id = tenant_id
     response = await call_next(request)
     return response
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-from fastapi.staticfiles import StaticFiles
-
-current_file_dir = os.path.dirname(os.path.abspath(__file__))
-assets_dir = os.path.join(current_file_dir, "templates", "assets")
-os.makedirs(assets_dir, exist_ok=True)
-app.mount("/assets", StaticFiles(directory=assets_dir, html=False), name="assets")
 
 @app.get("/ping")
 def ping():
