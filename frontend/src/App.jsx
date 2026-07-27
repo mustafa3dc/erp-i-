@@ -96,8 +96,12 @@ function App() {
 
     const [phoneInput, setPhoneInput] = useState('');
     const [emailInput, setEmailInput] = useState('');
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-    const handleRegister = async (e) => {
+    const handleSendOTP = async (e) => {
         if (e) e.preventDefault();
         setLoginError('');
         if (!usernameInput.trim() || !passwordInput || !confirmPasswordInput || !phoneInput.trim() || !emailInput.trim()) {
@@ -108,7 +112,32 @@ function App() {
             setLoginError('كلمتا المرور غير متطابقتين.');
             return;
         }
+        setSendingOtp(true);
         try {
+            const res = await axios.post('/auth/send-otp/', {
+                phone: phoneInput,
+                username: usernameInput
+            });
+            setShowOtpModal(true);
+            if (res.data.code_preview) {
+                alert(`تم توليد كود التحقق بنجاح! 📲\nرمز التحقق الخاص بك هو: ${res.data.code_preview}`);
+            }
+        } catch (err) {
+            setLoginError(err.response?.data?.detail || 'تعذر إرسال كود التحقق. يرجى التأكد من الرقم.');
+        } finally {
+            setSendingOtp(false);
+        }
+    };
+
+    const handleVerifyAndRegister = async (e) => {
+        if (e) e.preventDefault();
+        if (!otpCode.trim()) return;
+        setVerifyingOtp(true);
+        try {
+            await axios.post('/auth/verify-otp/', {
+                phone: phoneInput,
+                code: otpCode
+            });
             await axios.post('/auth/register/', {
                 username: usernameInput,
                 password: passwordInput,
@@ -116,15 +145,19 @@ function App() {
                 email: emailInput,
                 role: roleInput
             });
-            alert('تم إنشاء الحساب التجريبي بنجاح لمدة 7 أيام! 🎉 يمكنك الآن تسجيل الدخول.');
+            alert('تم التأكد من رقم الواتساب وإنشاء الحساب التجريبي بنجاح لمدة 7 أيام! 🎉');
+            setShowOtpModal(false);
             setAuthTab('login');
             setPasswordInput('');
             setConfirmPasswordInput('');
             setPhoneInput('');
             setEmailInput('');
+            setOtpCode('');
             setLoginError('');
         } catch (err) {
-            setLoginError(err.response?.data?.detail || 'حدث خطأ أثناء إنشاء الحساب.');
+            alert(err.response?.data?.detail || 'رمز التحقق غير صحيح أو انتهت صلاحيته.');
+        } finally {
+            setVerifyingOtp(false);
         }
     };
 
@@ -253,7 +286,7 @@ function App() {
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleRegister} className="space-y-4 text-right">
+                        <form onSubmit={handleSendOTP} className="space-y-4 text-right">
                             <div>
                                 <label className="block text-xs font-bold text-zinc-550 dark:text-zinc-400 mb-1.5">اسم المستخدم</label>
                                 <input 
@@ -322,11 +355,50 @@ function App() {
                             </div>
                             <button 
                                 type="submit" 
-                                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all cursor-pointer"
+                                disabled={sendingOtp}
+                                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all cursor-pointer flex items-center justify-center gap-2"
                             >
-                                إنشاء الحساب
+                                {sendingOtp ? 'جاري إرسال رمز التحقق...' : 'إرسال رمز التحقق ومتابعة التسجيل 📲'}
                             </button>
                         </form>
+                    )}
+
+                    {/* OTP Verification Modal */}
+                    {showOtpModal && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+                            <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-4 shadow-2xl text-right">
+                                <div className="text-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mx-auto mb-3">
+                                        <Icon name="shield-check" className="w-6 h-6 animate-bounce" />
+                                    </div>
+                                    <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">تأكيد ملكية رقم الهاتف 📲</h3>
+                                    <p className="text-xs text-zinc-400 mt-1">تم إرسال رمز تحقق مكون من 6 أرقام إلى واتساب الرقم ({phoneInput})</p>
+                                </div>
+                                <form onSubmit={handleVerifyAndRegister} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-extrabold text-zinc-400 mb-1.5 text-center">أدخل كود التحقق (OTP)</label>
+                                        <input 
+                                            type="text"
+                                            value={otpCode}
+                                            onChange={e => setOtpCode(e.target.value)}
+                                            placeholder="------"
+                                            maxLength={6}
+                                            className="w-full px-4 py-3 text-center tracking-[10px] text-xl font-mono rounded-xl border border-zinc-200 dark:border-zinc-800 bg-transparent focus:border-indigo-600 font-bold"
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={() => setShowOtpModal(false)} className="flex-1 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 font-bold text-xs">
+                                            إلغاء
+                                        </button>
+                                        <button type="submit" disabled={verifyingOtp} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs shadow-lg shadow-indigo-600/30">
+                                            {verifyingOtp ? 'جاري التأكد...' : 'تأكيد الحساب والتفعيل 🎉'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
