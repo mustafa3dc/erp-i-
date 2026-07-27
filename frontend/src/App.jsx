@@ -87,6 +87,7 @@ function App() {
                 localStorage.setItem('currentUser', JSON.stringify(user));
                 setUsernameInput('');
                 setPasswordInput('');
+                window.location.reload();
             }
         } catch (err) {
             setLoginError(err.response?.data?.detail || 'اسم المستخدم أو رمز المرور غير صحيح.');
@@ -123,6 +124,7 @@ function App() {
     const handleLogout = () => {
         setCurrentUser(null);
         localStorage.removeItem('currentUser');
+        window.location.reload();
     };
 
     // Fetch data
