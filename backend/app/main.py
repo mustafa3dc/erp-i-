@@ -903,35 +903,43 @@ def set_gdrive_account(request: SetGDriveAccountRequest):
 # Customer Endpoints
 # ─────────────────────────────────────────────────────────
 
-@app.get("/customers/", response_model=List[schemas.CustomerResponse])
+@app.get("/customers/")
 def get_customers(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
-    customers = crud.get_all_customers(db=db, skip=skip, limit=limit)
-    result = []
-    for c in customers:
-        # Compute aggregates on the fly
-        sales_count = db.query(models.Sale).filter(
-            models.Sale.customer_name.ilike(f"%{c.name}%")
-        ).count()
-        maint_count = db.query(models.MaintenanceJob).filter(
-            models.MaintenanceJob.customer_name.ilike(f"%{c.name}%")
-        ).count()
-        current_debt = crud.calculate_customer_debt(db, c)
-        r = schemas.CustomerResponse(
-            id=c.id,
-            name=c.name,
-            phone=c.phone,
-            notes=c.notes,
-            initial_debt=getattr(c, 'initial_debt', 0.0),
-            installment_downpayment=getattr(c, 'installment_downpayment', 0.0),
-            installment_monthly=getattr(c, 'installment_monthly', 0.0),
-            created_at=c.created_at,
-            updated_at=c.updated_at,
-            total_sales=sales_count,
-            total_maintenance=maint_count,
-            current_debt=current_debt
-        )
-        result.append(r)
-    return result
+    try:
+        customers = crud.get_all_customers(db=db, skip=skip, limit=limit)
+        result = []
+        for c in customers:
+            try:
+                sales_count = db.query(models.Sale).filter(models.Sale.customer_name.ilike(f"%{c.name}%")).count()
+            except Exception:
+                sales_count = 0
+            try:
+                maint_count = db.query(models.MaintenanceJob).filter(models.MaintenanceJob.customer_name.ilike(f"%{c.name}%")).count()
+            except Exception:
+                maint_count = 0
+            try:
+                current_debt = crud.calculate_customer_debt(db, c)
+            except Exception:
+                current_debt = float(getattr(c, 'initial_debt', 0.0) or 0.0)
+            
+            result.append({
+                "id": str(c.id),
+                "name": c.name,
+                "phone": c.phone or "",
+                "notes": c.notes or "",
+                "initial_debt": float(getattr(c, 'initial_debt', 0.0) or 0.0),
+                "installment_downpayment": float(getattr(c, 'installment_downpayment', 0.0) or 0.0),
+                "installment_monthly": float(getattr(c, 'installment_monthly', 0.0) or 0.0),
+                "created_at": c.created_at.isoformat() if getattr(c, 'created_at', None) else None,
+                "updated_at": c.updated_at.isoformat() if getattr(c, 'updated_at', None) else None,
+                "total_sales": sales_count,
+                "total_maintenance": maint_count,
+                "current_debt": current_debt
+            })
+        return result
+    except Exception as e:
+        print(f"Error fetching customers: {e}")
+        return []
 
 
 @app.get("/customers/search/")
