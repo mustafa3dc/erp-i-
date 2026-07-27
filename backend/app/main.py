@@ -244,8 +244,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Database startup failed: {e}.")
     yield
-    stop_bot_process()
-    stop_whatsapp_process()
+    if not os.environ.get("RENDER"):
+        stop_bot_process()
+        stop_whatsapp_process()
 
 app = FastAPI(
     title="Double-Entry Accounting System API",
