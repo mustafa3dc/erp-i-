@@ -253,7 +253,8 @@ app.add_middleware(
 from fastapi.staticfiles import StaticFiles
 
 # Mount static assets from frontend build directory
-dist_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend", "dist")
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+dist_dir = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist"))
 assets_dir = os.path.join(dist_dir, "assets")
 
 if os.path.exists(assets_dir):
@@ -262,10 +263,8 @@ if os.path.exists(assets_dir):
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     template_path = os.path.join(dist_dir, "index.html")
-    # Fallback to backend templates if front-end is not built yet
     if not os.path.exists(template_path):
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        template_path = os.path.join(current_dir, "templates", "index.html")
+        template_path = os.path.join(current_file_dir, "templates", "index.html")
     try:
         with open(template_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
