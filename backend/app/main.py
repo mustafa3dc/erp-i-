@@ -914,39 +914,26 @@ def set_gdrive_account(request: SetGDriveAccountRequest):
 @app.get("/customers/")
 def get_customers(skip: int = 0, limit: int = 200, db: Session = Depends(get_db)):
     try:
-        customers = crud.get_all_customers(db=db, skip=skip, limit=limit)
+        customers = db.query(models.Customer).offset(skip).limit(limit).all()
         result = []
         for c in customers:
-            try:
-                sales_count = db.query(models.Sale).filter(models.Sale.customer_name.ilike(f"%{c.name}%")).count()
-            except Exception:
-                sales_count = 0
-            try:
-                maint_count = db.query(models.MaintenanceJob).filter(models.MaintenanceJob.customer_name.ilike(f"%{c.name}%")).count()
-            except Exception:
-                maint_count = 0
-            try:
-                current_debt = crud.calculate_customer_debt(db, c)
-            except Exception:
-                current_debt = float(getattr(c, 'initial_debt', 0.0) or 0.0)
-            
             result.append({
                 "id": str(c.id),
-                "name": c.name,
-                "phone": c.phone or "",
-                "notes": c.notes or "",
-                "initial_debt": float(getattr(c, 'initial_debt', 0.0) or 0.0),
-                "installment_downpayment": float(getattr(c, 'installment_downpayment', 0.0) or 0.0),
-                "installment_monthly": float(getattr(c, 'installment_monthly', 0.0) or 0.0),
+                "name": str(c.name) if c.name else "",
+                "phone": str(c.phone) if c.phone else "",
+                "notes": str(c.notes) if c.notes else "",
+                "initial_debt": float(c.initial_debt) if getattr(c, 'initial_debt', None) is not None else 0.0,
+                "installment_downpayment": float(c.installment_downpayment) if getattr(c, 'installment_downpayment', None) is not None else 0.0,
+                "installment_monthly": float(c.installment_monthly) if getattr(c, 'installment_monthly', None) is not None else 0.0,
                 "created_at": c.created_at.isoformat() if getattr(c, 'created_at', None) else None,
                 "updated_at": c.updated_at.isoformat() if getattr(c, 'updated_at', None) else None,
-                "total_sales": sales_count,
-                "total_maintenance": maint_count,
-                "current_debt": current_debt
+                "total_sales": 0,
+                "total_maintenance": 0,
+                "current_debt": float(c.initial_debt) if getattr(c, 'initial_debt', None) is not None else 0.0
             })
         return result
     except Exception as e:
-        print(f"Error fetching customers: {e}")
+        print(f"Customer fetch error: {e}")
         return []
 
 
