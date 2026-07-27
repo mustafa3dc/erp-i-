@@ -184,7 +184,8 @@ async def lifespan(app: FastAPI):
             except Exception:
                 pass
                 
-        perform_auto_backup()
+        if not os.environ.get("RENDER"):
+            perform_auto_backup()
         
         # Ensure all existing users have unique tenant_ids
         from .database import SessionLocal
