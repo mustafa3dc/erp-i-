@@ -197,7 +197,19 @@ async def lifespan(app: FastAPI):
         finally:
             db_session.close()
     except Exception as e:
-        print(f"Seeding session error: {e}")
+    # Background Keep-Alive Ping Thread to prevent Render free instance from sleeping
+    import threading, time, urllib.request
+    def keep_alive_ping():
+        time.sleep(10)
+        while True:
+            try:
+                urllib.request.urlopen("https://erp-i.onrender.com/ping", timeout=5)
+                print("Keep-Alive ping sent successfully.")
+            except Exception as pe:
+                print(f"Keep-Alive ping error: {pe}")
+            time.sleep(300) # Ping every 5 minutes
+
+    threading.Thread(target=keep_alive_ping, daemon=True).start()
 
     yield
 
@@ -234,6 +246,10 @@ assets_dir = os.path.join(dist_dir, "assets")
 
 if os.path.exists(assets_dir):
     app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+@app.get("/ping")
+def ping():
+    return {"status": "ok", "message": "Server is active 24/7"}
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
