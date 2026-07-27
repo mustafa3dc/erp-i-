@@ -710,27 +710,30 @@ def update_product(db: Session, product_id: str, name: str, brand: str, type: st
 # Customer CRUD
 # ─────────────────────────────────────────────────────────
 
-def get_or_create_customer(db: Session, name: str, phone: str = None) -> models.Customer:
-    """Find an existing customer by name or phone, or create a new one."""
+def get_or_create_customer(db: Session, name: str, phone: str = None, tenant_id: str = "default") -> models.Customer:
+    """Find an existing customer by name or phone, or create a new one for the specified tenant."""
     customer = None
 
-    # Search by phone first (most reliable)
+    # Search by phone first (most reliable) within tenant
     if phone:
         phone_clean = phone.strip()
         customer = db.query(models.Customer).filter(
+            models.Customer.tenant_id == tenant_id,
             models.Customer.phone == phone_clean
         ).first()
 
-    # If not found by phone, search by name (case-insensitive)
+    # If not found by phone, search by name (case-insensitive) within tenant
     if not customer and name:
         name_clean = name.strip()
         customer = db.query(models.Customer).filter(
+            models.Customer.tenant_id == tenant_id,
             models.Customer.name.ilike(name_clean)
         ).first()
 
     # Create if still not found
     if not customer:
         customer = models.Customer(
+            tenant_id=tenant_id,
             name=name.strip() if name else "زبون",
             phone=phone.strip() if phone else None,
         )
