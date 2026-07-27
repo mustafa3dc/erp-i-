@@ -239,10 +239,12 @@ app.add_middleware(
 
 from fastapi.staticfiles import StaticFiles
 
-# Mount static assets from frontend build directory
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 dist_dir = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist"))
 assets_dir = os.path.join(dist_dir, "assets")
+
+if not os.path.exists(assets_dir):
+    assets_dir = os.path.join(current_file_dir, "templates", "assets")
 
 if os.path.exists(assets_dir):
     app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
