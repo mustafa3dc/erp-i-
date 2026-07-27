@@ -178,7 +178,7 @@ async def lifespan(app: FastAPI):
                 
         perform_auto_backup()
         
-        # Create default admin user if none exist
+        # Create default admin user if none exist or update is_super_admin
         from .database import SessionLocal
         db_session = SessionLocal()
         try:
@@ -187,11 +187,16 @@ async def lifespan(app: FastAPI):
             from .schemas import UserCreate
             user_count = db_session.query(User).count()
             if user_count == 0:
-                admin_user = UserCreate(username="admin", password="admin", role="admin")
+                admin_user = UserCreate(username="admin", password="admin", role="admin", is_super_admin=1)
                 create_user(db_session, admin_user)
                 print("Default admin user created successfully (username: admin, password: admin)")
+            else:
+                admin_account = db_session.query(User).filter(User.username == "admin").first()
+                if admin_account:
+                    admin_account.is_super_admin = 1
+                    db_session.commit()
         except Exception as ue:
-            print(f"Error creating default admin user: {ue}")
+            print(f"Error updating admin user: {ue}")
         finally:
             db_session.close()
 
