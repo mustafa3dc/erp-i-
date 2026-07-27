@@ -80,9 +80,9 @@ export default function CustomersPage() {
         if (!form.name.trim()) return;
         setSaving(true);
         try {
-            const cleanedDebt = toEnglishDigits(form.initial_debt);
-            const cleanedDownpayment = toEnglishDigits(form.installment_downpayment || '0');
-            const cleanedMonthly = toEnglishDigits(form.installment_monthly || '0');
+            const cleanedDebt = cleanCommaFormattedNumber(toEnglishDigits(form.initial_debt));
+            const cleanedDownpayment = cleanCommaFormattedNumber(toEnglishDigits(form.installment_downpayment || '0'));
+            const cleanedMonthly = cleanCommaFormattedNumber(toEnglishDigits(form.installment_monthly || '0'));
             await axios.post('/customers/', {
                 ...form,
                 initial_debt: parseFloat(cleanedDebt) || 0,
