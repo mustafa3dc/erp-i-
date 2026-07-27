@@ -190,8 +190,11 @@ async def lifespan(app: FastAPI):
         from .database import SessionLocal
         db_session = SessionLocal()
         try:
-            from .crud import seed_recharge_cards
-            seed_recharge_cards(db_session)
+            from .crud import get_shop_settings
+            st = get_shop_settings(db_session)
+            if st and (not st.shop_name or st.shop_name == "متجر الموبايل"):
+                st.shop_name = "MOBILE SIS"
+                db_session.commit()
         except Exception as se:
             print(f"Seeding error: {se}")
         finally:

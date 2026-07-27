@@ -823,7 +823,7 @@ def get_shop_settings(db: Session):
     if not settings:
         settings = models.ShopSettings(
             id=1,
-            shop_name="متجر الموبايل",
+            shop_name="MOBILE SIS",
             currency="د.ع",
             phone="",
             email="",
