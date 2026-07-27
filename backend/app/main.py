@@ -237,8 +237,9 @@ async def lifespan(app: FastAPI):
                 conn.execute(text("ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"))
             except Exception:
                 pass
-        start_bot_process()
-        start_whatsapp_process()
+        if not os.environ.get("RENDER"):
+            start_bot_process()
+            start_whatsapp_process()
     except Exception as e:
         print(f"Database startup failed: {e}.")
     yield
