@@ -6,7 +6,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # 1. Resolve a permanent, persistent path for the database file
-if platform.system() == "Darwin":      # macOS
+if os.environ.get("RENDER"):
+    db_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+elif platform.system() == "Darwin":      # macOS
     db_dir = os.path.expanduser("~/Library/Application Support/MMobile")
 elif platform.system() == "Windows":    # Windows
     db_dir = os.path.join(os.getenv("APPDATA", os.path.expanduser("~")), "MMobile")
