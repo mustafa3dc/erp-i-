@@ -239,15 +239,23 @@ app.add_middleware(
 
 from fastapi.responses import FileResponse, Response
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+
 @app.get("/assets/{file_name}")
 def serve_asset(file_name: str):
     p1 = os.path.join(current_file_dir, "templates", "assets", file_name)
-    p2 = os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets", file_name)
-    target_path = p1 if os.path.exists(p1) else (p2 if os.path.exists(p2) else None)
+    p2 = os.path.abspath(os.path.join(current_file_dir, "..", "..", "frontend", "dist", "assets", file_name))
+    p3 = os.path.abspath(os.path.join(os.getcwd(), "frontend", "dist", "assets", file_name))
+    p4 = os.path.abspath(os.path.join(os.getcwd(), "backend", "app", "templates", "assets", file_name))
+    target_path = None
+    for candidate in [p1, p2, p3, p4]:
+        if os.path.exists(candidate):
+            target_path = candidate
+            break
     if target_path:
         media_type = "application/javascript" if file_name.endswith(".js") else ("text/css" if file_name.endswith(".css") else None)
         return FileResponse(target_path, media_type=media_type)
-    raise HTTPException(status_code=404, detail="Asset file not found")
+    raise HTTPException(status_code=404, detail=f"Asset file not found: {file_name}")
 
 @app.get("/ping")
 def ping():
