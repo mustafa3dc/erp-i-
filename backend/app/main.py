@@ -983,27 +983,32 @@ def customer_history(customer_id: str, db: Session = Depends(get_db)):
 
 @app.post("/customers/", response_model=schemas.CustomerResponse, status_code=201)
 def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
-    c = crud.get_or_create_customer(db=db, name=customer.name, phone=customer.phone)
-    if customer.notes:
-        c.notes = customer.notes
-    if customer.initial_debt is not None:
-        c.initial_debt = customer.initial_debt
-    if customer.installment_downpayment is not None:
-        c.installment_downpayment = customer.installment_downpayment
-    if customer.installment_monthly is not None:
-        c.installment_monthly = customer.installment_monthly
-    db.commit()
-    db.refresh(c)
-    current_debt = crud.calculate_customer_debt(db, c)
-    return schemas.CustomerResponse(
-        id=c.id, name=c.name, phone=c.phone, notes=c.notes,
-        initial_debt=c.initial_debt,
-        installment_downpayment=c.installment_downpayment,
-        installment_monthly=c.installment_monthly,
-        created_at=c.created_at, updated_at=c.updated_at,
-        total_sales=0, total_maintenance=0,
-        current_debt=current_debt
-    )
+    try:
+        c = crud.get_or_create_customer(db=db, name=customer.name, phone=customer.phone)
+        if customer.notes is not None:
+            c.notes = customer.notes
+        if customer.initial_debt is not None:
+            c.initial_debt = customer.initial_debt
+        if customer.installment_downpayment is not None:
+            c.installment_downpayment = customer.installment_downpayment
+        if customer.installment_monthly is not None:
+            c.installment_monthly = customer.installment_monthly
+        db.commit()
+        db.refresh(c)
+        current_debt = crud.calculate_customer_debt(db, c)
+        return schemas.CustomerResponse(
+            id=c.id, name=c.name, phone=c.phone, notes=c.notes,
+            initial_debt=c.initial_debt,
+            installment_downpayment=c.installment_downpayment,
+            installment_monthly=c.installment_monthly,
+            created_at=c.created_at, updated_at=c.updated_at,
+            total_sales=0, total_maintenance=0,
+            current_debt=current_debt
+        )
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating customer: {e}")
+        raise HTTPException(status_code=400, detail=f"تعذر إضافة الزبون: {str(e)}")
 
 
 @app.post("/customers/bulk/", status_code=201)
