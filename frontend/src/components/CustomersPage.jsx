@@ -83,7 +83,7 @@ export default function CustomersPage() {
             const cleanedDebt = cleanCommaFormattedNumber(toEnglishDigits(form.initial_debt));
             const cleanedDownpayment = cleanCommaFormattedNumber(toEnglishDigits(form.installment_downpayment || '0'));
             const cleanedMonthly = cleanCommaFormattedNumber(toEnglishDigits(form.installment_monthly || '0'));
-            await axios.post('/customers/', {
+            const res = await axios.post('/customers/', {
                 ...form,
                 initial_debt: parseFloat(cleanedDebt) || 0,
                 installment_downpayment: parseFloat(cleanedDownpayment) || 0,
@@ -91,6 +91,11 @@ export default function CustomersPage() {
             });
             setShowAddModal(false);
             setForm({ name: '', phone: '', notes: '', initial_debt: '0', installment_downpayment: '0', installment_monthly: '0' });
+            alert(`تم إضافة الزبون "${res.data.name}" بنجاح! 🎉`);
+            if (res.data) {
+                setCustomers(prev => [res.data, ...prev.filter(c => c.id !== res.data.id)]);
+                handleSelectCustomer(res.data);
+            }
             fetchCustomers();
         } catch (e) {
             alert(e.response?.data?.detail || 'خطأ في إضافة الزبون. يرجى التأكد من البيانات.');
