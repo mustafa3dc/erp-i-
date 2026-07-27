@@ -126,30 +126,29 @@ async def lifespan(app: FastAPI):
     try:
         from sqlalchemy import text
         cols = [
-            "ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00",
-            "ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00",
-            "ALTER TABLE users ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
-            "ALTER TABLE users ADD COLUMN shop_name VARCHAR DEFAULT 'متجر الموبايل'",
-            "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1",
-            "ALTER TABLE users ADD COLUMN is_super_admin INTEGER DEFAULT 0",
-            "ALTER TABLE maintenance_jobs ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
-            "ALTER TABLE customers ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
-            "ALTER TABLE customer_payments ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
-            "ALTER TABLE shop_settings ADD COLUMN tenant_id VARCHAR DEFAULT 'default'",
-            "ALTER TABLE shop_settings ADD COLUMN telegram_token VARCHAR DEFAULT ''",
-            "ALTER TABLE shop_settings ADD COLUMN telegram_chat_id VARCHAR DEFAULT ''",
-            "ALTER TABLE users ADD COLUMN phone VARCHAR",
-            "ALTER TABLE users ADD COLUMN email VARCHAR",
-            "ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID",
-            "ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"
+            "ALTER TABLE customers ADD COLUMN installment_downpayment NUMERIC(12, 2) DEFAULT 0.00;",
+            "ALTER TABLE customers ADD COLUMN installment_monthly NUMERIC(12, 2) DEFAULT 0.00;",
+            "ALTER TABLE users ADD COLUMN tenant_id VARCHAR DEFAULT 'default';",
+            "ALTER TABLE users ADD COLUMN shop_name VARCHAR DEFAULT 'متجر الموبايل';",
+            "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1;",
+            "ALTER TABLE users ADD COLUMN is_super_admin INTEGER DEFAULT 0;",
+            "ALTER TABLE maintenance_jobs ADD COLUMN tenant_id VARCHAR DEFAULT 'default';",
+            "ALTER TABLE customers ADD COLUMN tenant_id VARCHAR DEFAULT 'default';",
+            "ALTER TABLE customer_payments ADD COLUMN tenant_id VARCHAR DEFAULT 'default';",
+            "ALTER TABLE shop_settings ADD COLUMN tenant_id VARCHAR DEFAULT 'default';",
+            "ALTER TABLE shop_settings ADD COLUMN telegram_token VARCHAR DEFAULT '';",
+            "ALTER TABLE shop_settings ADD COLUMN telegram_chat_id VARCHAR DEFAULT '';",
+            "ALTER TABLE users ADD COLUMN phone VARCHAR;",
+            "ALTER TABLE users ADD COLUMN email VARCHAR;",
+            "ALTER TABLE maintenance_jobs ADD COLUMN used_product_id UUID;",
+            "ALTER TABLE inventory_items ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;"
         ]
         for col_stmt in cols:
             try:
-                with engine.connect() as conn:
+                with engine.begin() as conn:
                     conn.execute(text(col_stmt))
-                    conn.commit()
-            except Exception:
-                pass
+            except Exception as ex:
+                print(f"Col statement skipped: {col_stmt} -> {ex}")
     except Exception as mig_e:
         print(f"Migration error: {mig_e}")
 
