@@ -353,12 +353,18 @@ def read_inventory(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
 
 # Sales
 @app.post("/sales/", response_model=schemas.SaleResponse, status_code=status.HTTP_201_CREATED)
-def create_sale(sale: schemas.SaleCreate, db: Session = Depends(get_db)):
+def create_sale(sale: schemas.SaleCreate, request: Request, db: Session = Depends(get_db)):
+    tenant_id = getattr(request.state, "tenant_id", "default")
     # Auto-save customer
     customer = None
     if sale.customer_name and sale.customer_name.strip():
         try:
-            customer = crud.get_or_create_customer(db=db, name=sale.customer_name, phone=getattr(sale, 'customer_phone', None))
+            customer = crud.create_customer_direct(
+                db=db,
+                name=sale.customer_name,
+                phone=getattr(sale, 'customer_phone', None),
+                tenant_id=tenant_id
+            )
             if customer and sale.payment_method == schemas.PaymentMethod.CREDIT:
                 if sale.installment_downpayment is not None:
                     customer.installment_downpayment = sale.installment_downpayment
@@ -379,7 +385,8 @@ def create_sale(sale: schemas.SaleCreate, db: Session = Depends(get_db)):
                 db=db,
                 customer_id=customer.id,
                 amount=float(sale.installment_downpayment),
-                notes=f"مقدمة القسط لفاتورة مبيعات رقم {str(created_sale.id)[:8]}"
+                notes=f"مقدمة القسط لفاتورة مبيعات رقم {str(created_sale.id)[:8]}",
+                tenant_id=tenant_id
             )
             db.commit()
         except Exception as e:
@@ -388,7 +395,7 @@ def create_sale(sale: schemas.SaleCreate, db: Session = Depends(get_db)):
     return created_sale
 
 @app.get("/sales/", response_model=List[schemas.SaleResponse])
-def read_sales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_sales(request: Request, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_sales(db=db, skip=skip, limit=limit)
 
 @app.post("/sales/{sale_id}/refund/")
@@ -496,18 +503,20 @@ def update_entishar_balance(req: EntisharBalanceUpdate):
 
 # Maintenance Endpoints
 @app.post("/maintenance/", response_model=schemas.MaintenanceJobResponse, status_code=status.HTTP_201_CREATED)
-def create_maintenance_job(job: schemas.MaintenanceJobCreate, db: Session = Depends(get_db)):
+def create_maintenance_job(job: schemas.MaintenanceJobCreate, request: Request, db: Session = Depends(get_db)):
+    tenant_id = getattr(request.state, "tenant_id", "default")
     # Auto-save customer
     if job.customer_name and job.customer_name.strip():
         try:
-            crud.get_or_create_customer(db=db, name=job.customer_name, phone=job.customer_phone)
+            crud.create_customer_direct(db=db, name=job.customer_name, phone=job.customer_phone, tenant_id=tenant_id)
         except Exception:
             pass
-    return crud.create_maintenance_job(db=db, job=job)
+    return crud.create_maintenance_job(db=db, job=job, tenant_id=tenant_id)
 
 @app.get("/maintenance/", response_model=List[schemas.MaintenanceJobResponse])
-def read_maintenance_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_maintenance_jobs(db=db, skip=skip, limit=limit)
+def read_maintenance_jobs(request: Request, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    tenant_id = getattr(request.state, "tenant_id", "default")
+    return crud.get_maintenance_jobs(db=db, skip=skip, limit=limit, tenant_id=tenant_id)
 
 class UpdateMaintenanceJobRequest(BaseModel):
     status: str
