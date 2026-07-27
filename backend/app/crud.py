@@ -889,8 +889,12 @@ def create_user(db: Session, user_data: schemas.UserCreate):
     now = datetime.now()
     trial_end = now + timedelta(days=7)
 
-    clean_phone = user_data.phone.strip() if (user_data.phone and user_data.phone.strip()) else None
-    clean_email = user_data.email.strip().lower() if (user_data.email and user_data.email.strip()) else None
+    clean_phone = getattr(user_data, 'phone', None)
+    if clean_phone:
+        clean_phone = str(clean_phone).strip()
+    clean_email = getattr(user_data, 'email', None)
+    if clean_email:
+        clean_email = str(clean_email).strip().lower()
 
     db_user = models.User(
         username=user_data.username.strip().lower(),
