@@ -1003,7 +1003,7 @@ def customer_history(customer_id: str, db: Session = Depends(get_db)):
     }
 
 
-@app.post("/customers/", response_model=schemas.CustomerResponse, status_code=201)
+@app.post("/customers/", status_code=201)
 def create_customer(customer: schemas.CustomerCreate, request: Request, db: Session = Depends(get_db)):
     try:
         tenant_id = getattr(request.state, "tenant_id", "default")
@@ -1020,15 +1020,20 @@ def create_customer(customer: schemas.CustomerCreate, request: Request, db: Sess
         db.commit()
         db.refresh(c)
         current_debt = crud.calculate_customer_debt(db, c)
-        return schemas.CustomerResponse(
-            id=c.id, name=c.name, phone=c.phone, notes=c.notes,
-            initial_debt=c.initial_debt,
-            installment_downpayment=c.installment_downpayment,
-            installment_monthly=c.installment_monthly,
-            created_at=c.created_at, updated_at=c.updated_at,
-            total_sales=0, total_maintenance=0,
-            current_debt=current_debt
-        )
+        return {
+            "id": str(c.id),
+            "name": c.name,
+            "phone": c.phone or "",
+            "notes": c.notes or "",
+            "initial_debt": float(c.initial_debt) if c.initial_debt is not None else 0.0,
+            "installment_downpayment": float(c.installment_downpayment) if c.installment_downpayment is not None else 0.0,
+            "installment_monthly": float(c.installment_monthly) if c.installment_monthly is not None else 0.0,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "updated_at": c.updated_at.isoformat() if c.updated_at else None,
+            "total_sales": 0,
+            "total_maintenance": 0,
+            "current_debt": current_debt
+        }
     except Exception as e:
         db.rollback()
         print(f"Error creating customer: {e}")
